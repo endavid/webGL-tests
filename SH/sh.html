@@ -17,6 +17,8 @@ Your browser doesn't support the HTML5 canvas tag.
 
 <canvas id="debugSamplesCanvas" width="256" height="256" style="background-color: black;">
 </canvas>
+<canvas id="previewCanvas" width="256" height="256" style="background-color: black;">
+</canvas>
 
 <script language="javascript">
 var img = new Image;
@@ -34,7 +36,9 @@ img.onload = function() {
 	// flatten array of arrays
 	vertices = vertices.reduce(function(a,b) { return a.concat(b); });
 	colors = colors.reduce(function(a,b) { return a.concat(b); });
-	main(vertices, colors);
+	var dotRenderer = new DotRenderer("debugSamplesCanvas");
+	dotRenderer.setDots(vertices, colors);
+	dotRenderer.renderer.start();
 };
 img.src = "resources/Cubemap-debug.png";
 //img.src = "resources/Cubemap-park.jpg"
