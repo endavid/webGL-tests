@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset='utf-8'>
+	<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+	<script type="text/javascript" src="libs.js"></script>
+	<script type="text/javascript" src="sh.js"></script>
+	<script type="text/javascript" src="math.min.js"></script>
+	<script type="text/javascript" src="spHarmonics.js"></script>
+</head>
+
+<body style='margin:0px'>
+
+<canvas id="cubemapCanvas" width="128" height="96" style="border:1px solid #d3d3d3;">
+Your browser doesn't support the HTML5 canvas tag.
+</canvas>
+
+<canvas id="debugSamplesCanvas" width="256" height="256" style="background-color: black;">
+</canvas>
+
+<script language="javascript">
+var img = new Image;
+var polarSampler; 
+img.onload = function() {
+	var c = document.getElementById("cubemapCanvas");
+	var ctx = c.getContext("2d");
+	ctx.drawImage(img, 0, 0, c.width, c.height);
+	var imgData = ctx.getImageData(0, 0, c.width, c.height);
+	var numBands = imgData.data.length / (c.width * c.height);
+	polarSampler = createPolarSamplerFromImage(imgData.data, numBands, 32, 32);
+	spH = new SphericalHarmonics(3, 100);
+	var vertices = spH.samples.map(function(s) { return s.vec; } )
+	var colors = spH.samples.map(function(s) { return polarSampler.apply(this, s.sph); });
+	// flatten array of arrays
+	vertices = vertices.reduce(function(a,b) { return a.concat(b); });
+	colors = colors.reduce(function(a,b) { return a.concat(b); });
+	main(vertices, colors);
+};
+img.src = "resources/Cubemap-debug.png";
+//img.src = "resources/Cubemap-park.jpg"
+
+//$(window).bind("load", function() {
+//   main();
+//});
+// math.multiply([[1,2], [3,4]], [1, 1])
+spH = new SphericalHarmonics(3, 100)
+</script>
+
+	<!--<canvas id='demo_canvas'
+	style='position: absolute; background-color: gray;'>
+	</canvas>
+-->
+</body>
+</html>
