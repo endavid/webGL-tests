@@ -19,8 +19,13 @@ Your browser doesn't support the HTML5 canvas tag.
 </canvas>
 <canvas id="canvas_reconstructed_samples" width="256" height="256" style="background-color: black;">
 </canvas>
+<p/>
+<div id="timer"></div>
+<p/>
 
 <script language="javascript">
+
+var spH = new SphericalHarmonics(3, 2500);
 var img = new Image;
 img.onload = function() {
 	var c = document.getElementById("canvas_cubemap");
@@ -32,7 +37,6 @@ img.onload = function() {
 	var polarSamplerRGB = function(theta, phi) {
 		return GFX.colorSRGB2RGB(math.multiply(1.0/255.0,polarSampler(theta, phi)));
 	};
-	var spH = new SphericalHarmonics(3, 2500);
 	var coeffs = spH.projectPolarFn(polarSamplerRGB);
 	//console.log(coeffs);
 	var vertices = spH.samples.map(function(s) { return s.vec; } )
@@ -54,19 +58,48 @@ img.onload = function() {
 	var reconstructedRenderer = new DotRenderer("canvas_reconstructed_samples");
 	reconstructedRenderer.setDots(vertices, reconstructedColors);
 	reconstructedRenderer.renderer.start();
+	
+	// @todo Fix ScaleMatrix computation
+	//var completion = 0;
+	//var tau = createDistanceAngularScalingFn(0.5);
+	//spH.yieldComputeScaleMatrix(tau, function(p) { 
+	//	completion = p; 
+	//}, function() {
+	//	console.log(spH.scaleMatrix);
+	//	// apply to red channel s[0]
+	//	console.log(math.multiply(spH.scaleMatrix, spH.coeffs.map(function(s) { return s[0]; })));
+	//});
+	//
+	//var t = document.getElementById('timer');
+	//(function timer() {
+    //	t.innerHTML = parseInt(completion*100);
+    //	if (completion < 1) {
+    //    	setTimeout(timer, 100);
+    //    }
+    //})();
+    
 };
-img.src = "resources/Cubemap-debug.png";
-//img.src = "resources/Cubemap-park.jpg"
+var cubemaps = {
+	cubemapDebug: "resources/Cubemap-debug.png",
+	cubemapPark: "resources/Cubemap-park.jpg"
+};
+img.src = cubemaps["cubemapDebug"];
+
+var swapCubemap = function() {
+	var s = document.getElementById("cubemapSelect");
+	// changing the image will trigger the onload function above
+	img.src = cubemaps[s.value];
+}
 
 //$(window).bind("load", function() {
 //});
 // math.multiply([[1,2], [3,4]], [1, 1])
-spH = new SphericalHarmonics(3, 100)
 </script>
 
-	<!--<canvas id='demo_canvas'
-	style='position: absolute; background-color: gray;'>
-	</canvas>
--->
+<select id="cubemapSelect" onchange='swapCubemap()'>
+	<option value="cubemapDebug" selected="selected">Cubemap debug</option>
+	<option value="cubemapPark">Cubemap park</option>
+</select>
+
 </body>
 </html>

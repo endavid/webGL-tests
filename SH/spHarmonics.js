@@ -78,6 +78,17 @@ function createPolarSamplerFromImage(imgData, numBands, faceWidth, faceHeight)
 	};
 }
 
+/**
+ * @param k: signed distance / radius of sphere (original distance to light)
+ */
+function createDistanceAngularScalingFn(k)
+{
+	return function(theta) {
+		var cth = math.cot(theta);
+		return 2.0 * math.atan((math.sqrt(cth*cth+1-k*k)-cth)/(1+k));
+	};
+}
+
 // ===================================================================
 /**
  * Class to compute Spherical Harmonics
@@ -93,6 +104,15 @@ function SphericalHarmonics(numBands, numSamples)
 	this.coeffs = [];
 	for (var i = 0; i < this.numCoeffs; ++i) {
 		this.coeffs.push([0, 0, 0]);
+	}
+	this.scaleMatrix = []; // used to scale the coefficients
+	// store (l,m) values, useful for looping
+	this.lmPairs = [];
+	for(var l=0; l<this.numBands; ++l) {
+		for(var m=-l; m<=l; ++m) {
+			var ci = l * (l+1) + m // coefficient index
+			this.lmPairs[ci] = [l, m];
+		}
 	}
 	this.setupSphericalSamples();
 }
@@ -207,14 +227,66 @@ SphericalHarmonics.prototype.projectPolarFn = function(fn)
 SphericalHarmonics.prototype.reconstruct = function(theta, phi)
 {
 	var o = [0, 0, 0];
-	var i = 0;
 	for(var l=0; l<this.numBands; ++l) {
 		for(var m=-l; m<=l; ++m) {
+			var ci = l * (l+1) + m // coefficient index
 			var sh = this.SH(l,m,theta,phi);
-			o = math.add(o, math.multiply(sh, this.coeffs[i]));
-			i++;
+			o = math.add(o, math.multiply(sh, this.coeffs[ci]));
 		}
 	}
 	return o;
 }
+
+/**
+ * Compute a scaling transformation matrix.
+ * This function yields when the computation is taking too long.
+ * @param scalingFn: angular scaling function
+ * @param updateFn: callback to trigger after every chunk
+ * @param finishFn: callback to trigger after all is done
+ */
+SphericalHarmonics.prototype.yieldComputeScaleMatrix = function(scalingFn, updateFn, finishedFn)
+{
+	var self = this;
+	var c = 0, i = 0, j = 0, n = 0, yieldCounter = 0;
+	var chunkSize = 25; // yield every "chunkSize" processed blocks
+	// totalChunkSize = chunkSize * numCoeffs * numCoeffs = 2025
+	// init the scale matrix
+	this.scaleMatrix = [];
+	var row = [];
+	for (i = 0; i < this.numCoeffs; ++i) {
+		row.push(0);
+	}
+	for (i = 0; i < this.numCoeffs; ++i) {
+		this.scaleMatrix.push(row);
+	}
+	// create a function to do a chunk of work, and call it
+	(function chunk() {
+		var end = Math.min(n + chunkSize, self.numSamples);
+		for (;n<end;++n) {
+			var theta = self.samples[n].sph[0];
+			var phi = self.samples[n].sph[1];
+			var scaledTheta = scalingFn(theta);
+			var nu = Math.sin(theta);
+			for (i=0;i<self.numCoeffs;++i) {
+				var lm0 = self.lmPairs[i];
+				//var shi = self.samples[n].coeff[i]; // precomputed
+				var shi = self.SH(lm0[0], lm0[1], theta, phi);
+				for (j=0;j<self.numCoeffs;++j) {
+					var lm = self.lmPairs[j];
+					var shj = self.SH(lm[0], lm[1], scaledTheta, phi);
+					self.scaleMatrix[i][j] += shj * shi; 
+				}
+			}
+			updateFn.call(null, n / self.numSamples); // percentage completed
+		}
+		if (n < self.numSamples) {
+			setTimeout(chunk, 0);
+		} else {
+			self.scaleMatrix = math.multiply(4.0*math.PI/self.numSamples, self.scaleMatrix);
+			finishedFn.call(null);
+		}
+	})();	
+}
+
+ 
 
