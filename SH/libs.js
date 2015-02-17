@@ -10,6 +10,7 @@ var GFX = {
 	shaderCache: {},
 	SHADER_TYPE_FRAGMENT: "x-shader/x-fragment",
 	SHADER_TYPE_VERTEX: "x-shader/x-vertex",
+	SRGB_GAMMA: 2.4,
 	
 	/// Eg. var shaderProgram = GFX.useShader(gl, "shaders/main.vs", "shaders/main.fs");
 	useShader: function(gl, vsPath, fsPath)
@@ -64,6 +65,29 @@ var GFX = {
 		}
 		return shader;
 	}, // getShader
+	
+	colorSRGB2RGB: function(v)
+	{
+		var linear = v.map(function(c) {
+			var o = c;
+			if ( c > 0.04045 ) o = math.pow((c+0.055)/1.055, GFX.SRGB_GAMMA);
+			else o = (c / 12.92);
+			return o;
+		});
+		return linear;
+	},
+
+	colorRGB2SRGB: function(v)
+	{
+		var srgb = v.map(function(c) {
+			var o = c;
+			if ( c > 0.00304 ) o = 1.055 * math.pow(c, 1.0/GFX.SRGB_GAMMA) - 0.055;
+			else o = (c * 12.92);
+			return o;
+		});
+		return srgb;
+	},
+	
 };
 
 /** Math libs */

@@ -11,40 +11,54 @@
 
 <body style='margin:0px'>
 
-<canvas id="cubemapCanvas" width="128" height="96" style="border:1px solid #d3d3d3;">
+<canvas id="canvas_cubemap" width="128" height="96" style="border:1px solid #d3d3d3;">
 Your browser doesn't support the HTML5 canvas tag.
 </canvas>
 
-<canvas id="debugSamplesCanvas" width="256" height="256" style="background-color: black;">
+<canvas id="canvas_samples" width="256" height="256" style="background-color: black;">
 </canvas>
-<canvas id="previewCanvas" width="256" height="256" style="background-color: black;">
+<canvas id="canvas_reconstructed_samples" width="256" height="256" style="background-color: black;">
 </canvas>
 
 <script language="javascript">
 var img = new Image;
-var polarSampler; 
 img.onload = function() {
-	var c = document.getElementById("cubemapCanvas");
+	var c = document.getElementById("canvas_cubemap");
 	var ctx = c.getContext("2d");
 	ctx.drawImage(img, 0, 0, c.width, c.height);
 	var imgData = ctx.getImageData(0, 0, c.width, c.height);
 	var numBands = imgData.data.length / (c.width * c.height);
-	polarSampler = createPolarSamplerFromImage(imgData.data, numBands, 32, 32);
-	spH = new SphericalHarmonics(3, 2500);
+	var polarSampler = createPolarSamplerFromImage(imgData.data, numBands, 32, 32);
+	var polarSamplerRGB = function(theta, phi) {
+		return GFX.colorSRGB2RGB(math.multiply(1.0/255.0,polarSampler(theta, phi)));
+	};
+	var spH = new SphericalHarmonics(3, 2500);
+	var coeffs = spH.projectPolarFn(polarSamplerRGB);
+	//console.log(coeffs);
 	var vertices = spH.samples.map(function(s) { return s.vec; } )
 	var colors = spH.samples.map(function(s) { return math.multiply(polarSampler.apply(this, s.sph), 1.0/255.0); });
+	var spCoords = spH.samples.map(function(s) { return s.sph; } );
+	var reconstructedColors = spCoords.map(function(s) {
+		var o = spH.reconstruct.apply(spH, s);
+		o = GFX.colorRGB2SRGB(o);
+		o[3] = 1.0; // alpha
+		return o;
+	});
 	// flatten array of arrays
 	vertices = vertices.reduce(function(a,b) { return a.concat(b); });
 	colors = colors.reduce(function(a,b) { return a.concat(b); });
-	var dotRenderer = new DotRenderer("debugSamplesCanvas");
-	dotRenderer.setDots(vertices, colors);
-	dotRenderer.renderer.start();
+	reconstructedColors = reconstructedColors.reduce(function(a,b) { return a.concat(b); });
+	var samplesRenderer = new DotRenderer("canvas_samples");
+	samplesRenderer.setDots(vertices, colors);
+	samplesRenderer.renderer.start();
+	var reconstructedRenderer = new DotRenderer("canvas_reconstructed_samples");
+	reconstructedRenderer.setDots(vertices, reconstructedColors);
+	reconstructedRenderer.renderer.start();
 };
 img.src = "resources/Cubemap-debug.png";
 //img.src = "resources/Cubemap-park.jpg"
 
 //$(window).bind("load", function() {
-//   main();
 //});
 // math.multiply([[1,2], [3,4]], [1, 1])
 spH = new SphericalHarmonics(3, 100)

@@ -88,7 +88,12 @@ function SphericalHarmonics(numBands, numSamples)
 	this.numBands = numBands;
 	this.numSamplesSqrt = parseInt(math.sqrt(numSamples));
 	this.numSamples = this.numSamplesSqrt * this.numSamplesSqrt;
+	this.numCoeffs = numBands * numBands;
 	this.samples = [];
+	this.coeffs = [];
+	for (var i = 0; i < this.numCoeffs; ++i) {
+		this.coeffs.push([0, 0, 0]);
+	}
 	this.setupSphericalSamples();
 }
 
@@ -182,17 +187,34 @@ SphericalHarmonics.prototype.projectPolarFn = function(fn)
 	for (i = 0; i<this.numSamples; ++i) {
 		theta = this.samples[i].sph[0];
 		phi = this.samples[i].sph[1];
-		for (n = 0; n < numCoeffs; ++n) {
-			this.coeffs[n] = math.add(this.coeffs[n], math.multiply(fn(theta,phi),  this.samples[i].coeff[n]));
+		for (n = 0; n < this.numCoeffs; ++n) {
+			this.coeffs[n] = math.add(this.coeffs[n], math.multiply(fn(theta,phi).slice(0, 3),  this.samples[i].coeff[n]));
 		}
 	}
 	// divide the result by weight and number of samples
-	factor = weight / numSamples
-	for (i = 0; i<numCoeffs; ++i) {
+	factor = weight / this.numSamples
+	for (i = 0; i < this.numCoeffs; ++i) {
 		this.coeffs[i] = math.multiply(this.coeffs[i], factor);
 	}
 	// compute matrices for later
 	//computeIrradianceApproximationMatrices()
 	return this.coeffs;
+}
+
+/**
+ * Reconstruct the approximated function for the given input direction
+ */
+SphericalHarmonics.prototype.reconstruct = function(theta, phi)
+{
+	var o = [0, 0, 0];
+	var i = 0;
+	for(var l=0; l<this.numBands; ++l) {
+		for(var m=-l; m<=l; ++m) {
+			var sh = this.SH(l,m,theta,phi);
+			o = math.add(o, math.multiply(sh, this.coeffs[i]));
+			i++;
+		}
+	}
+	return o;
 }
 
