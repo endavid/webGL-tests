@@ -2,6 +2,7 @@
 <html>
 <head>
 	<meta charset='utf-8'>
+	<link rel="stylesheet" type="text/css" href="style.css" title="viewerStyle"/>
 	<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
 	<script type="text/javascript" src="libs.js"></script>
 	<script type="text/javascript" src="modelViewer.js"></script>
@@ -15,9 +16,26 @@ $(window).bind("load", function() {
 });
 </script>
 
-	<canvas id='demo_canvas'
-	style='position: absolute; background-color: gray;'>
-	</canvas>
+<div id="page">
+	<div id="sidemenu">
+			<div id="title"></div>
+	</div>
+
+	<div id="mainarea">
+		<center>
+		<canvas id='demo_canvas' width="512" height="640">
+		Your browser doesn't support the HTML5 canvas tag.
+		</canvas>
+		</center>
+	</div>
+
+	<div id="footer">
+	<center>
+	Model Viewer by <a ref="http://endavid.com">David Gavilan</a>
+	</center>
+	</div>
+
+</div>
 
 </body>
 </html>

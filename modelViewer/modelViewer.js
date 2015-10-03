@@ -43,8 +43,6 @@ Resources.prototype.setDefaultTextureParameters = function()
 var main = function()
 {
 	var canvas = document.getElementById("demo_canvas");
-	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
 	// -------------------------------------------------
 	// capture mouse events
 	// -------------------------------------------------
