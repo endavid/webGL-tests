@@ -1,3 +1,12 @@
+var ViewParameters = {
+	isLockRotationY: false,
+	isLockRotationX: false,
+	modelRotationTheta: 0,
+	modelRotationPhi: 0,
+	cameraDistance: -6,
+	cameraHeight: -0.7,
+	onRotation: function() {},
+}
 
 // ============================================
 /// Class to init resources
@@ -51,6 +60,20 @@ var main = function()
 	var old_x, old_y;
 	var dX=0, dY=0;
 
+	var updateViewRotation = function(dX, dY) {
+		if (!ViewParameters.isLockRotationY) {
+			ViewParameters.modelRotationTheta += dX;
+		}
+		if (!ViewParameters.isLockRotationX) {
+			ViewParameters.modelRotationPhi += dY;
+		}
+		if (!ViewParameters.isLockRotationX && !ViewParameters.isLockRotationY) {
+			if (Math.abs(dX) > 0.001 || Math.abs(dY) > 0.001) {
+				ViewParameters.onRotation();
+			}
+		}
+	}
+
 	var mouseDown=function(e) {
 	  drag=true;
 	  old_x=e.pageX, old_y=e.pageY;
@@ -66,8 +89,7 @@ var main = function()
 	  if (!drag) return false;
 	  dX=(e.pageX-old_x)*Math.PI/canvas.width,
 	    dY=(e.pageY-old_y)*Math.PI/canvas.height;
-	  THETA+=dX;
-	  PHI+=dY;
+		updateViewRotation(dX, dY);
 	  old_x=e.pageX, old_y=e.pageY;
 	  e.preventDefault();
 	};
@@ -104,13 +126,9 @@ var main = function()
 	// ------------------------------------
 	// matrices
 	// ------------------------------------
-	var projectionMatrix = MATH.getProjection(40, canvas.width/canvas.height, 1, 100);
+	var projectionMatrix = MATH.getProjection(40, canvas.width/canvas.height, 0.1, 50);
 	var modelMatrix = MATH.getI4();
 	var viewMatrix = MATH.getI4();
-	MATH.translateZ(viewMatrix, -6);
-	MATH.translateY(viewMatrix, -0.7);
-	var THETA=0,
-      	PHI=0;
 
 	// --------------------------------------------
 	// Drawing
@@ -125,14 +143,18 @@ var main = function()
 	var animate = function(time)
 	{
 		var dt=time-time_old;
+		time_old=time;
+
 		if (!drag) {
 		  dX*=amortization, dY*=amortization;
-		  THETA+=dX, PHI+=dY;
+			updateViewRotation(dX, dY);
 		}
 		MATH.setI4(modelMatrix);
-		MATH.rotateY(modelMatrix, THETA);
-		MATH.rotateX(modelMatrix, PHI);
-		time_old=time;
+		MATH.rotateY(modelMatrix, ViewParameters.modelRotationTheta);
+		MATH.rotateX(modelMatrix, ViewParameters.modelRotationPhi);
+		MATH.setI4(viewMatrix);
+		MATH.translateZ(viewMatrix, ViewParameters.cameraDistance);
+		MATH.translateY(viewMatrix, ViewParameters.cameraHeight);
 
 		gl.viewport(0, 0, canvas.width, canvas.height);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);

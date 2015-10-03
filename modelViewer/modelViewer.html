@@ -6,19 +6,27 @@
 	<script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
 	<script type="text/javascript" src="libs.js"></script>
 	<script type="text/javascript" src="modelViewer.js"></script>
+	<script type="text/javascript" src="controls.js"></script>
 </head>
 
-<body style='margin:0px'>
+<body>
 
 <script language="javascript">
-$(window).bind("load", function() {
-   main();
+$( document ).ready(function() {
+	 main();
+	 populateControls();
 });
 </script>
 
 <div id="page">
 	<div id="sidemenu">
 			<div id="title"></div>
+			<br/>
+			<center>
+			<table id="controls"><tbody>
+			</tbody></table>
+			</center>
+			<br/>
 	</div>
 
 	<div id="mainarea">
@@ -27,6 +35,7 @@ $(window).bind("load", function() {
 		Your browser doesn't support the HTML5 canvas tag.
 		</canvas>
 		</center>
+		<br/>
 	</div>
 
 	<div id="footer">
