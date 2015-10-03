@@ -1,4 +1,7 @@
 function populateControls() {
+  var AnimationSettings = {
+    hideDelay: 250
+  };
   var createSlider = function(id, value, min, max, step, callback) {
     var numberId = id + "_number";
     var sliderUpdateFunction = function(event) {
@@ -9,7 +12,7 @@ function populateControls() {
       $("#"+id).attr('value', event.target.value);
       callback(event.target.value);
     }
-    return $('<tr>').append($('<td>')
+    return $('<tr>').attr('id',id+"_parent").append($('<td>')
             .append(id+": <br/>")
             .append($('<input>')
               .attr('id', numberId)
@@ -33,7 +36,7 @@ function populateControls() {
     var updateFunction = function(event) {
       callback(event.target.checked);
     }
-    return $('<tr>').append($('<td>')
+    return $('<tr>').attr('id',id+"_parent").append($('<td>')
             .append(id+": ")
             .append($('<input>')
               .attr('id', id)
@@ -45,6 +48,24 @@ function populateControls() {
 
   var createTitle = function(id) {
     return $('<tr>').append($('<td>').attr('class', "selected").append(id));
+  }
+
+  var addGroup = function(id, elements) {
+    var elementIds = [];
+    elements.forEach(function(element) {
+      // *_parent ids
+      elementIds.push(element.attr('id'));
+    });
+    var toggle = function() {
+      elementIds.forEach(function(elementId) {
+        $("#"+elementId).toggle(AnimationSettings.hideDelay);
+      });
+    };
+    var tbody = $("#controls").find('tbody');
+    tbody.append(createTitle(id).click(toggle));
+    elements.forEach(function(element) {
+      tbody.append(element);
+    });
   }
 
   ViewParameters.onRotation = function() {
@@ -67,31 +88,30 @@ function populateControls() {
   }
 
   // Create the UI controls
-  // @todo Hide controls from a group when clicking on Title group
-  $("#controls").find('tbody')
-      .append(createTitle("Model Settings"))
-      .append(createCheckbox("lockRotationY", ViewParameters.isLockRotationY, function(value) {
-        ViewParameters.isLockRotationY = value;
-      }))
-      .append(createSlider("modelRotationTheta",
-        ViewParameters.modelRotationTheta, 0, 2 * Math.PI, 0.01, function(value) {
-          ViewParameters.modelRotationTheta = parseFloat(value);
-      }))
-      .append(createCheckbox("lockRotationX", ViewParameters.isLockRotationX, function(value) {
-        ViewParameters.isLockRotationX = value;
-      }))
-      .append(createSlider("modelRotationPhi",
-        ViewParameters.modelRotationPhi, 0, 2 * Math.PI, 0.01, function(value) {
-          ViewParameters.modelRotationPhi = parseFloat(value);
-      }))
-      .append(createTitle("Camera Settings"))
-      .append(createSlider("cameraDistance",
-        ViewParameters.cameraDistance, -10, -0.9, 0.01, function(value) {
-          ViewParameters.cameraDistance = parseFloat(value);
-      }))
-      .append(createSlider("cameraHeight",
-        ViewParameters.cameraHeight, -2, 2, 0.01, function(value) {
-          ViewParameters.cameraHeight = parseFloat(value);
-      }))
-  ;
+  addGroup("Model Settings", [
+    createCheckbox("lockRotationY", ViewParameters.isLockRotationY, function(value) {
+      ViewParameters.isLockRotationY = value;
+    }),
+    createSlider("modelRotationTheta",
+      ViewParameters.modelRotationTheta, 0, 2 * Math.PI, 0.01, function(value) {
+        ViewParameters.modelRotationTheta = parseFloat(value);
+    }),
+    createCheckbox("lockRotationX", ViewParameters.isLockRotationX, function(value) {
+      ViewParameters.isLockRotationX = value;
+    }),
+    createSlider("modelRotationPhi",
+      ViewParameters.modelRotationPhi, 0, 2 * Math.PI, 0.01, function(value) {
+        ViewParameters.modelRotationPhi = parseFloat(value);
+    })
+  ]);
+  addGroup("Camera Settings", [
+    createSlider("cameraDistance",
+      ViewParameters.cameraDistance, -10, -0.9, 0.01, function(value) {
+        ViewParameters.cameraDistance = parseFloat(value);
+    }),
+    createSlider("cameraHeight",
+      ViewParameters.cameraHeight, -2, 2, 0.01, function(value) {
+        ViewParameters.cameraHeight = parseFloat(value);
+    })
+  ]);
 }
