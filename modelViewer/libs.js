@@ -143,6 +143,47 @@ var GFX = {
 		};
 		return image;
 	},
+
+	getFileNameWithoutExtension: function(file) {
+		var iSlash = file.lastIndexOf('/')+1;
+		var iDot = file.lastIndexOf('.');
+		return file.substr(iSlash, iDot - iSlash);
+	},
+
+	exportObjModel: function(file) {
+		var filename = GFX.getFileNameWithoutExtension(file);
+		$.getJSON(file, function(model) {
+			var out = "# Vertices\n";
+			for (var i = 0; i < model.vertices.length; i+=8 ) {
+				out += "v " + model.vertices[i] + " " + model.vertices[i+1] + " " + model.vertices[i+2] + "\n";
+			}
+			out += "# Normals\n";
+			for (var i = 0; i < model.vertices.length; i+=8 ) {
+				out += "vn " + model.vertices[i+3] + " " + model.vertices[i+4] + " " + model.vertices[i+5] + "\n";
+			}
+			out += "# Texture coordinates\n";
+			for (var i = 0; i < model.vertices.length; i+=8 ) {
+				out += "vt " + model.vertices[i+6] + " " + model.vertices[i+7] + "\n";
+			}
+			model.meshes.forEach(function (m) {
+				out += "usemap " + m.texture + "\n"; // old Wavefront texture map
+				for (var i = 0; i < m.indices.length; i+=3 ) {
+					var i1 = m.indices[i] + 1;
+					var i2 = m.indices[i+1] + 1;
+					var i3 = m.indices[i+2] + 1;
+					out += "f " + i1 +"/" + i1 + "/" + i1 + " "
+					out += i2 +"/" + i2 + "/" + i2 + " "
+					out += i3 +"/" + i3 + "/" + i3 + "\n"
+				}
+			});
+
+			saveAs(
+				new Blob([out], {type: "text/plain;charset=" + document.characterSet})
+				, filename + ".obj"
+			);
+
+		});
+	},
 };
 
 /** Math libs */

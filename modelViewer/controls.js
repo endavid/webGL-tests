@@ -58,6 +58,16 @@ function populateControls() {
             .append(id+": ").append(select));
   }
 
+  var createButton = function(id, text, callback) {
+    return $('<tr>').attr('id',id+"_parent").append($('<td>')
+            .append($("<button>")
+              .attr('id', id)
+              .attr('type', "button")
+              .click(callback)
+              .append(text))
+            );
+  }
+
   var createTitle = function(id) {
     return $('<tr>').append($('<td>').attr('class', "selected").append(id));
   }
@@ -101,8 +111,11 @@ function populateControls() {
 
   // Create the UI controls
   addGroup("File", [
-    createDropdownList("Presets", ["pear.json", "banana.json"], function(value) {
+    createDropdownList("Presets", ["pear.json", "banana.json", "orange.json"], function(value) {
       ViewParameters.modelURL = "resources/"+value;
+    }),
+    createButton("saveObj", "Save as .OBJ", function(e) {
+      GFX.exportObjModel(ViewParameters.modelURL);
     })
   ]);
   addGroup("Model Settings", [
