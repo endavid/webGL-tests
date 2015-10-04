@@ -65,8 +65,36 @@ var GFX = {
 		return shader;
 	}, // getShader
 
+	destroyBuffers: function(gl, modelData)
+	{
+		if (modelData.meshes) {
+			modelData.meshes.forEach(function (m) {
+				if (m.texture && m.texture.webglTexture) {
+					gl.deleteTexture(m.texture.webglTexture);
+				}
+				gl.deleteBuffer(m.indexBuffer);
+			});
+			modelData.meshes = false;
+		}
+		if (modelData.vertexBuffer) {
+			gl.deleteBuffer(modelData.vertexBuffer);
+			modelData.vertexBuffer = false;
+		}
+	},
+
+	// format:
+	// { name: // model name
+	//   vertices: // float array in this order: position (3), normal (3), uv (2)
+	//   meshes: // array of submeshes
+	//      [ {texture: // texture file name
+	//				 indices: // faces of the submesh
+	//			}]
+	// }
 	loadJsonModel: function(gl, file, modelData, callback)
 	{
+		// free previous resources
+		GFX.destroyBuffers(gl, modelData);
+		modelData.modelURL = file;
 		$.getJSON(file, function(model) {
 			//console.log("Loaded");
 			//vertices

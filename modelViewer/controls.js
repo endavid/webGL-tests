@@ -46,6 +46,18 @@ function populateControls() {
     );
   }
 
+  var createDropdownList = function(id, list, callback) {
+    var updateFunction = function(event) {
+      callback(event.target.value);
+    }
+    var select = $('<select>').attr('id', id).change(updateFunction);
+    list.forEach(function (element) {
+      select.append($('<option>').attr('value', element).append(element));
+    });
+    return $('<tr>').attr('id',id+"_parent").append($('<td>')
+            .append(id+": ").append(select));
+  }
+
   var createTitle = function(id) {
     return $('<tr>').append($('<td>').attr('class', "selected").append(id));
   }
@@ -88,6 +100,11 @@ function populateControls() {
   }
 
   // Create the UI controls
+  addGroup("File", [
+    createDropdownList("Presets", ["pear.json", "banana.json"], function(value) {
+      ViewParameters.modelURL = "resources/"+value;
+    })
+  ]);
   addGroup("Model Settings", [
     createCheckbox("lockRotationY", ViewParameters.isLockRotationY, function(value) {
       ViewParameters.isLockRotationY = value;

@@ -1,4 +1,5 @@
 var ViewParameters = {
+	modelURL: "resources/pear.json",
 	isLockRotationY: false,
 	isLockRotationX: false,
 	modelRotationTheta: 0,
@@ -118,10 +119,11 @@ var main = function()
 	// model data
 	// ------------------------------------
 	var modelData = {
+		modelURL: "",
 		vertexBuffer: false,
 		meshes: false
 	};
-  GFX.loadJsonModel(gl, 'resources/pear.json', modelData, function() {animate(0)});
+  GFX.loadJsonModel(gl, ViewParameters.modelURL, modelData, function() {animate(0)});
 
 	// ------------------------------------
 	// matrices
@@ -145,6 +147,12 @@ var main = function()
 		var dt=time-time_old;
 		time_old=time;
 
+		if (ViewParameters.modelURL !== modelData.modelURL) {
+			GFX.loadJsonModel(gl, ViewParameters.modelURL, modelData, function() {
+				console.log("Loaded: "+modelData.modelURL);
+			});
+		}
+
 		if (!drag) {
 		  dX*=amortization, dY*=amortization;
 			updateViewRotation(dX, dY);
@@ -159,26 +167,28 @@ var main = function()
 		gl.viewport(0, 0, canvas.width, canvas.height);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-		gl.useProgram(res.shaderLit);
-		gl.uniform1i(res.uniSampler, 0);
-		gl.uniformMatrix4fv(res.uniPmatrix, false, projectionMatrix);
-		gl.uniformMatrix4fv(res.uniVmatrix, false, viewMatrix);
-		gl.uniformMatrix4fv(res.uniMmatrix, false, modelMatrix);
-		gl.bindBuffer(gl.ARRAY_BUFFER, modelData.vertexBuffer);
-		gl.vertexAttribPointer(res.attribPosition, 3, gl.FLOAT, false, 4*(3+3+2), 0);
-		gl.vertexAttribPointer(res.attribNormal, 3, gl.FLOAT, false, 4*(3+3+2), 4*3);
-		gl.vertexAttribPointer(res.attribUv, 2, gl.FLOAT, false, 4*(3+3+2), 4*(3+3));
-		gl.uniformMatrix4fv(res.uniMmatrix, false, modelMatrix);
+		if (modelData.vertexBuffer) {
+			gl.useProgram(res.shaderLit);
+			gl.uniform1i(res.uniSampler, 0);
+			gl.uniformMatrix4fv(res.uniPmatrix, false, projectionMatrix);
+			gl.uniformMatrix4fv(res.uniVmatrix, false, viewMatrix);
+			gl.uniformMatrix4fv(res.uniMmatrix, false, modelMatrix);
+			gl.bindBuffer(gl.ARRAY_BUFFER, modelData.vertexBuffer);
+			gl.vertexAttribPointer(res.attribPosition, 3, gl.FLOAT, false, 4*(3+3+2), 0);
+			gl.vertexAttribPointer(res.attribNormal, 3, gl.FLOAT, false, 4*(3+3+2), 4*3);
+			gl.vertexAttribPointer(res.attribUv, 2, gl.FLOAT, false, 4*(3+3+2), 4*(3+3));
+			gl.uniformMatrix4fv(res.uniMmatrix, false, modelMatrix);
 
-		// draw all submeshes
-		modelData.meshes.forEach(function (mesh) {
-			if (mesh.texture && mesh.texture.webglTexture) {
-				gl.activeTexture(gl.TEXTURE0);
-				gl.bindTexture(gl.TEXTURE_2D, mesh.texture.webglTexture);
-			}
-			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
-			gl.drawElements(gl.TRIANGLES, mesh.numPoints, gl.UNSIGNED_SHORT, 0);
-		});
+			// draw all submeshes
+			modelData.meshes.forEach(function (mesh) {
+				if (mesh.texture && mesh.texture.webglTexture) {
+					gl.activeTexture(gl.TEXTURE0);
+					gl.bindTexture(gl.TEXTURE_2D, mesh.texture.webglTexture);
+				}
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
+				gl.drawElements(gl.TRIANGLES, mesh.numPoints, gl.UNSIGNED_SHORT, 0);
+			});
+		}
 
 		gl.flush();
 		window.requestAnimationFrame(animate); // redraw the scene
