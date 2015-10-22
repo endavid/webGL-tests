@@ -111,7 +111,7 @@ function populateControls() {
 
   // Create the UI controls
   addGroup("File", [
-    createDropdownList("Presets", ["pear.json", "banana.json", "orange.json"], function(value) {
+    createDropdownList("Presets", ["pear.json", "banana.json", "orange.json", "banana.obj"], function(value) {
       ViewParameters.modelURL = "resources/"+value;
     }),
     createButton("saveObj", "Save as .OBJ", function(e) {

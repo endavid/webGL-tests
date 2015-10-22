@@ -82,6 +82,19 @@ var GFX = {
 		}
 	},
 
+	// tries to get the datatype
+	loadModel: function(gl, file, modelData, callback)
+	{
+		var ext = GFX.getFileExtension(file);
+		var fn = GFX["loadModel"+ext];
+		if(typeof fn === 'function') {
+			fn(gl, file, modelData, callback);
+		} else {
+			window.alert("Unsupported format: "+ext);
+		}
+		modelData.modelURL = file;
+	},
+
 	// format:
 	// { name: // model name
 	//   vertices: // float array in this order: position (3), normal (3), uv (2)
@@ -90,38 +103,134 @@ var GFX = {
 	//				 indices: // faces of the submesh
 	//			}]
 	// }
-	loadJsonModel: function(gl, file, modelData, callback)
+	initModelFromJson: function(gl, modelData, textureDir, model) {
+		//vertices
+		modelData.vertexBuffer= gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, modelData.vertexBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER,
+									new Float32Array(model.vertices),
+			gl.STATIC_DRAW);
+		//submeshes
+		modelData.meshes=[];
+		model.meshes.forEach(function (m){
+			var mesh = {
+				indexBuffer: gl.createBuffer(),
+				numPoints: m.indices.length,
+				texture: m.texture ? GFX.loadTexture(gl, textureDir + "/" + m.texture) : false
+			};
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
+			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
+										new Uint16Array(m.indices), // 32-bit for more than 64K verts
+				gl.STATIC_DRAW);
+			modelData.meshes.push(mesh);
+		});
+	},
+
+	loadModelJson: function(gl, file, modelData, callback)
 	{
 		// free previous resources
 		GFX.destroyBuffers(gl, modelData);
 		modelData.modelURL = file;
 		$.getJSON(file, function(model) {
-			//console.log("Loaded");
-			//vertices
-			modelData.vertexBuffer= gl.createBuffer();
-			gl.bindBuffer(gl.ARRAY_BUFFER, modelData.vertexBuffer);
-			gl.bufferData(gl.ARRAY_BUFFER,
-										new Float32Array(model.vertices),
-				gl.STATIC_DRAW);
-
-			// parent directory of the Json file
-			var dir = file.substr(0,file.lastIndexOf('/'));
-			//submeshes
-			modelData.meshes=[];
-			model.meshes.forEach(function (m){
-				var mesh = {
-					indexBuffer: gl.createBuffer(),
-					numPoints: m.indices.length,
-					texture: m.texture ? GFX.loadTexture(gl, dir + "/" + m.texture) : false
-				};
-				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
-				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-											new Uint16Array(m.indices), // 32-bit for more than 64K verts
-					gl.STATIC_DRAW);
-				modelData.meshes.push(mesh);
-			});
-
+			GFX.initModelFromJson(gl, modelData, file.substr(0,file.lastIndexOf('/')), model);
 			callback();
+		});
+	},
+
+	parseObjWavefront: function(data) {
+		var lines = data.split("\n");
+		var positions = [];
+		var normals = [];
+		var uvs = [];
+		var meshes = [];
+		var uniqueIndexTriplets = {};
+		var model = {
+			vertices: [],
+			meshes: []
+		};
+		lines.forEach(function(s) {
+			var m;
+			m = /v\s(\-?\d+(?:\.\d+)?)\s(\-?\d+(?:\.\d+)?)\s(\-?\d+(?:\.\d+)?)/.exec(s);
+			if (m) {
+				m.slice(1, 4).forEach(function(val){
+					positions.push(parseFloat(val));
+				});
+				return;
+			}
+			m = /vn\s(\-?\d+(?:\.\d+)?)\s(\-?\d+(?:\.\d+)?)\s(\-?\d+(?:\.\d+)?)/.exec(s);
+			if (m) {
+				m.slice(1, 4).forEach(function(val){
+					normals.push(parseFloat(val));
+				});
+				return;
+			}
+			m = /vt\s(\-?\d+(?:\.\d+)?)\s(\-?\d+(?:\.\d+)?)/.exec(s);
+			if (m) {
+				uvs.push(parseFloat(m[1]));
+				uvs.push(parseFloat(m[2]));
+				return;
+			}
+			m = /usemap\s(.*)/.exec(s);
+			if (m) {
+				meshes.push({material: m[1], indices: []});
+				return;
+			}
+			m = /f\s(\d+(?:\/\d+){0,2})\s(\d+(?:\/\d+){0,2})\s(\d+(?:\/\d+){0,2})/.exec(s);
+			if (m) {
+				m.slice(1, 4).forEach(function(val) {
+					if (uniqueIndexTriplets[val] === undefined) {
+						uniqueIndexTriplets[val] = 1;
+					} else {
+						uniqueIndexTriplets[val]++;
+					}
+					meshes[meshes.length-1].indices.push(val);
+					//var triplet = val.split("/").map(function(d) {return parseInt(d)-1});
+					//meshes[meshes.length-1].indices.push(triplet);
+				});
+			}
+		});
+		var countSharedVertices = 0;
+		var uniqueIndexKeys = Object.keys(uniqueIndexTriplets);
+		var newVertexIndex = 0;
+		uniqueIndexKeys.forEach(function(k) {
+			if (uniqueIndexTriplets[k] > 1) {
+				countSharedVertices++;
+			}
+			uniqueIndexTriplets[k] = newVertexIndex++;
+			var triplet = k.split("/").map(function(d) {return parseInt(d)-1});
+			model.vertices.push(positions[3*triplet[0]]);
+			model.vertices.push(positions[3*triplet[0]+1]);
+			model.vertices.push(positions[3*triplet[0]+2]);
+			model.vertices.push(triplet[1]===undefined?0:normals[3*triplet[1]]);
+			model.vertices.push(triplet[1]===undefined?0:normals[3*triplet[1]+1]);
+			model.vertices.push(triplet[1]===undefined?0:normals[3*triplet[1]+2]);
+			model.vertices.push(triplet[2]===undefined?0:uvs[2*triplet[2]]);
+			model.vertices.push(triplet[2]===undefined?0:uvs[2*triplet[2]+1]);
+		});
+		console.log("# shared vertices: "+countSharedVertices+"/"+positions.length);
+		meshes.forEach(function(m){
+			var submesh = { texture: m.material, indices: [] };
+			// populate with new indices
+			m.indices.forEach(function(i) {
+				submesh.indices.push(uniqueIndexTriplets[i]);
+			});
+			model.meshes.push(submesh);
+		});
+		return model;
+	},
+
+	loadModelObj: function(gl, file, modelData, callback)
+	{
+		$.ajax({
+			async: true,
+			url: file,
+			success: function(data) {
+				var model = GFX.parseObjWavefront(data);
+				model.name = GFX.getFileNameWithoutExtension(file);
+				GFX.initModelFromJson(gl, modelData, file.substr(0,file.lastIndexOf('/')), model);
+				callback();
+			},
+			dataType: 'text'
 		});
 	},
 
@@ -148,6 +257,13 @@ var GFX = {
 		var iSlash = file.lastIndexOf('/')+1;
 		var iDot = file.lastIndexOf('.');
 		return file.substr(iSlash, iDot - iSlash);
+	},
+
+	// returns the extension in Camel case. Eg. Json, Obj
+	getFileExtension: function(file) {
+		var iDot = file.lastIndexOf('.');
+		var ext = file.substr(iDot+1).toLowerCase();
+		return ext.substr(0,1).toUpperCase()+ext.substr(1);
 	},
 
 	exportObjModel: function(file) {

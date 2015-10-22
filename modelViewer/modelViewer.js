@@ -123,7 +123,7 @@ var main = function()
 		vertexBuffer: false,
 		meshes: false
 	};
-  GFX.loadJsonModel(gl, ViewParameters.modelURL, modelData, function() {animate(0)});
+  GFX.loadModelJson(gl, ViewParameters.modelURL, modelData, function() {animate(0)});
 
 	// ------------------------------------
 	// matrices
@@ -148,7 +148,7 @@ var main = function()
 		time_old=time;
 
 		if (ViewParameters.modelURL !== modelData.modelURL) {
-			GFX.loadJsonModel(gl, ViewParameters.modelURL, modelData, function() {
+			GFX.loadModel(gl, ViewParameters.modelURL, modelData, function() {
 				console.log("Loaded: "+modelData.modelURL);
 			});
 		}
