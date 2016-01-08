@@ -1,3 +1,4 @@
+// Exposed globals (needed in controls.js)
 var ViewParameters = {
 	modelURL: "resources/pear.json",
 	isLockRotationY: false,
@@ -7,7 +8,9 @@ var ViewParameters = {
 	cameraDistance: -6,
 	cameraHeight: -0.7,
 	onRotation: function() {},
-}
+};
+
+(function() {
 
 // ============================================
 /// Class to init resources
@@ -194,3 +197,10 @@ var main = function()
 		window.requestAnimationFrame(animate); // redraw the scene
 	}
 }
+
+$( document ).ready(function() {
+//window.addEventListener('load', function() {
+	main();
+	populateControls();
+});
+})();
