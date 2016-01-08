@@ -41,7 +41,7 @@ Resources.prototype.initShaders = function()
 	gl.enableVertexAttribArray(this.attribUv);
 	gl.enableVertexAttribArray(this.attribPosition);
 	gl.enableVertexAttribArray(this.attribNormal);
-}
+};
 
 Resources.prototype.setDefaultTextureParameters = function()
 {
@@ -50,7 +50,7 @@ Resources.prototype.setDefaultTextureParameters = function()
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S,     gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T,     gl.CLAMP_TO_EDGE);
-}
+};
 
 // ============================================
 var main = function()
@@ -76,11 +76,12 @@ var main = function()
 				ViewParameters.onRotation();
 			}
 		}
-	}
+	};
 
 	var mouseDown=function(e) {
 	  drag=true;
-	  old_x=e.pageX, old_y=e.pageY;
+	  old_x=e.pageX;
+		old_y=e.pageY;
 	  e.preventDefault();
 	  return false;
 	};
@@ -91,10 +92,11 @@ var main = function()
 
 	var mouseMove=function(e) {
 	  if (!drag) return false;
-	  dX=(e.pageX-old_x)*Math.PI/canvas.width,
-	    dY=(e.pageY-old_y)*Math.PI/canvas.height;
+	  dX=(e.pageX-old_x)*Math.PI/canvas.width;
+	  dY=(e.pageY-old_y)*Math.PI/canvas.height;
 		updateViewRotation(dX, dY);
-	  old_x=e.pageX, old_y=e.pageY;
+	  old_x=e.pageX;
+		old_y=e.pageY;
 	  e.preventDefault();
 	};
 
@@ -126,7 +128,7 @@ var main = function()
 		vertexBuffer: false,
 		meshes: false
 	};
-  GFX.loadModelJson(gl, ViewParameters.modelURL, modelData, function() {animate(0)});
+  GFX.loadModelJson(gl, ViewParameters.modelURL, modelData, function() {animate(0);});
 
 	// ------------------------------------
 	// matrices
@@ -157,7 +159,8 @@ var main = function()
 		}
 
 		if (!drag) {
-		  dX*=amortization, dY*=amortization;
+		  dX*=amortization;
+			dY*=amortization;
 			updateViewRotation(dX, dY);
 		}
 		MATH.setI4(modelMatrix);
@@ -195,8 +198,8 @@ var main = function()
 
 		gl.flush();
 		window.requestAnimationFrame(animate); // redraw the scene
-	}
-}
+	};
+};
 
 $( document ).ready(function() {
 //window.addEventListener('load', function() {

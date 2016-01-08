@@ -7,11 +7,11 @@ function populateControls() {
     var sliderUpdateFunction = function(event) {
       $("#"+numberId).attr('value', event.target.value);
       callback(event.target.value);
-    }
+    };
     var numberUpdateFunction = function(event) {
       $("#"+id).attr('value', event.target.value);
       callback(event.target.value);
-    }
+    };
     return $('<tr>').attr('id',id+"_parent").append($('<td>')
             .append(id+": <br/>")
             .append($('<input>')
@@ -30,12 +30,12 @@ function populateControls() {
                 .change(sliderUpdateFunction)
             )
     );
-  }
+  };
 
   var createCheckbox = function(id, checked, callback) {
     var updateFunction = function(event) {
       callback(event.target.checked);
-    }
+    };
     return $('<tr>').attr('id',id+"_parent").append($('<td>')
             .append(id+": ")
             .append($('<input>')
@@ -44,19 +44,19 @@ function populateControls() {
               .prop('checked', checked)
               .change(updateFunction))
     );
-  }
+  };
 
   var createDropdownList = function(id, list, callback) {
     var updateFunction = function(event) {
       callback(event.target.value);
-    }
+    };
     var select = $('<select>').attr('id', id).change(updateFunction);
     list.forEach(function (element) {
       select.append($('<option>').attr('value', element).append(element));
     });
     return $('<tr>').attr('id',id+"_parent").append($('<td>')
             .append(id+": ").append(select));
-  }
+  };
 
   var createButton = function(id, text, callback) {
     return $('<tr>').attr('id',id+"_parent").append($('<td>')
@@ -66,11 +66,11 @@ function populateControls() {
               .click(callback)
               .append(text))
             );
-  }
+  };
 
   var createTitle = function(id) {
     return $('<tr>').append($('<td>').attr('class', "selected").append(id));
-  }
+  };
 
   var addGroup = function(id, elements) {
     var elementIds = [];
@@ -88,7 +88,7 @@ function populateControls() {
     elements.forEach(function(element) {
       tbody.append(element);
     });
-  }
+  };
 
   ViewParameters.onRotation = function() {
     if (ViewParameters.modelRotationTheta < 0) {
@@ -107,7 +107,7 @@ function populateControls() {
     $("#modelRotationTheta_number").attr('value', ViewParameters.modelRotationTheta);
     $("#modelRotationPhi").attr('value', ViewParameters.modelRotationPhi);
     $("#modelRotationPhi_number").attr('value', ViewParameters.modelRotationPhi);
-  }
+  };
 
   // Create the UI controls
   addGroup("File", [
