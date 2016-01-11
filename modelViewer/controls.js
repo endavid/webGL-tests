@@ -27,6 +27,7 @@ function populateControls() {
                 .attr('max', max)
                 .attr('step', step)
                 .attr('value', value)
+                .on('input', sliderUpdateFunction)
                 .change(sliderUpdateFunction)
             )
     );
