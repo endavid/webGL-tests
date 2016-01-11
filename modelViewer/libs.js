@@ -197,7 +197,7 @@ var GFX = {
 				countSharedVertices++;
 			}
 			uniqueIndexTriplets[k] = newVertexIndex++;
-			var triplet = k.split("/").map(function(d) {return parseInt(d)-1});
+			var triplet = k.split("/").map(function(d) {return parseInt(d)-1;});
 			model.vertices.push(positions[3*triplet[0]]);
 			model.vertices.push(positions[3*triplet[0]+1]);
 			model.vertices.push(positions[3*triplet[0]+2]);
@@ -270,15 +270,16 @@ var GFX = {
 		var filename = GFX.getFileNameWithoutExtension(file);
 		$.getJSON(file, function(model) {
 			var out = "# Vertices\n";
-			for (var i = 0; i < model.vertices.length; i+=8 ) {
+			var i;
+			for (i = 0; i < model.vertices.length; i+=8 ) {
 				out += "v " + model.vertices[i] + " " + model.vertices[i+1] + " " + model.vertices[i+2] + "\n";
 			}
 			out += "# Normals\n";
-			for (var i = 0; i < model.vertices.length; i+=8 ) {
+			for (i = 0; i < model.vertices.length; i+=8 ) {
 				out += "vn " + model.vertices[i+3] + " " + model.vertices[i+4] + " " + model.vertices[i+5] + "\n";
 			}
 			out += "# Texture coordinates\n";
-			for (var i = 0; i < model.vertices.length; i+=8 ) {
+			for (i = 0; i < model.vertices.length; i+=8 ) {
 				out += "vt " + model.vertices[i+6] + " " + model.vertices[i+7] + "\n";
 			}
 			model.meshes.forEach(function (m) {
@@ -287,15 +288,15 @@ var GFX = {
 					var i1 = m.indices[i] + 1;
 					var i2 = m.indices[i+1] + 1;
 					var i3 = m.indices[i+2] + 1;
-					out += "f " + i1 +"/" + i1 + "/" + i1 + " "
-					out += i2 +"/" + i2 + "/" + i2 + " "
-					out += i3 +"/" + i3 + "/" + i3 + "\n"
+					out += "f " + i1 +"/" + i1 + "/" + i1 + " ";
+					out += i2 +"/" + i2 + "/" + i2 + " ";
+					out += i3 +"/" + i3 + "/" + i3 + "\n";
 				}
 			});
 
 			saveAs(
-				new Blob([out], {type: "text/plain;charset=" + document.characterSet})
-				, filename + ".obj"
+				new Blob([out], {type: "text/plain;charset=" + document.characterSet}),
+				filename + ".obj"
 			);
 
 		});
@@ -315,8 +316,8 @@ var MATH = {
 			A = -(zMax + zMin)/(zMax - zMin),
 			B = (-2*zMax*zMin)/(zMax-zMin);
 		return [
-			.5/tan, 0, 0, 0,
-			0, .5*a/tan, 0, 0,
+			0.5/tan, 0, 0, 0,
+			0, 0.5*a/tan, 0, 0,
 			0, 0, A, -1,
 			0, 0, B, 0
 		];
@@ -330,10 +331,10 @@ var MATH = {
   },
 
   setI4: function(m) {
-    m[0]=1, m[1]=0, m[2]=0, m[3]=0,
-      m[4]=0, m[5]=1, m[6]=0, m[7]=0,
-      m[8]=0, m[9]=0, m[10]=1, m[11]=0,
-      m[12]=0, m[13]=0, m[14]=0, m[15]=1;
+    m[0]=1; m[1]=0; m[2]=0; m[3]=0;
+    m[4]=0; m[5]=1; m[6]=0; m[7]=0;
+    m[8]=0; m[9]=0; m[10]=1; m[11]=0;
+    m[12]=0; m[13]=0; m[14]=0; m[15]=1;
   },
 
   rotateX: function(m, angle) {
