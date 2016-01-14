@@ -49,11 +49,13 @@ function populateControls() {
 
   var createDropdownList = function(id, list, callback) {
     var updateFunction = function(event) {
-      callback(event.target.value);
+      var i = event.target.selectedIndex;
+      var obj = {name: event.target.options[i].innerHTML, uri: event.target.value};
+      callback(obj);
     };
     var select = $('<select>').attr('id', id).change(updateFunction);
-    list.forEach(function (element) {
-      select.append($('<option>').attr('value', element).append(element));
+    list.forEach(function (obj) {
+      select.append($('<option>').attr('value', obj.value).append(obj.name));
     });
     return $('<tr>').attr('id',id+"_parent").append($('<td>')
             .append(id+": ").append(select));
@@ -71,6 +73,29 @@ function populateControls() {
 
   var createTitle = function(id) {
     return $('<tr>').append($('<td>').attr('class', "selected").append(id));
+  };
+
+  var createFileBrowser = function(id, callback) {
+    var updateFunction = function(event) {
+      var fileArray = [];
+      for (var i = 0; i < event.target.files.length; i++) {
+        var f = event.target.files[i];
+        fileArray.push({
+          name: f.name,
+          uri: URL.createObjectURL(f)
+        });
+      }
+      callback(fileArray);
+    };
+    return $('<tr>').attr('id', id+"_parent").append($('<td>')
+      .append($("<input>")
+        .attr('id', id)
+        .attr('type', 'file')
+        .attr('accept', '.obj,.json')
+        .attr('multiple', '')
+        .change(updateFunction)
+      )
+    );
   };
 
   var addGroup = function(id, elements) {
@@ -110,13 +135,24 @@ function populateControls() {
     $("#modelRotationPhi_number").attr('value', ViewParameters.modelRotationPhi);
   };
 
+  var modelPresets = ["pear.json", "banana.json", "orange.json", "banana.obj"].map(function(e) {
+    return {name: e, value: "resources/"+e};
+  });
   // Create the UI controls
   addGroup("File", [
-    createDropdownList("Presets", ["pear.json", "banana.json", "orange.json", "banana.obj"], function(value) {
-      ViewParameters.modelURL = "resources/"+value;
+    createFileBrowser("fileBrowser", function(value) {
+      console.log(value);
+      // todo: add to preset list
+      // load first model selected
+      if (value.length > 0) {
+        ViewParameters.model = value[0];
+      }
+    }),
+    createDropdownList("Presets", modelPresets, function(obj) {
+      ViewParameters.model = obj;
     }),
     createButton("saveObj", "Save as .OBJ", function(e) {
-      GFX.exportObjModel(ViewParameters.modelURL);
+      GFX.exportObjModel(ViewParameters.model);
     })
   ]);
   addGroup("Model Settings", [

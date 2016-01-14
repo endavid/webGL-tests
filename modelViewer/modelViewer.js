@@ -1,6 +1,9 @@
 // Exposed globals (needed in controls.js)
 var ViewParameters = {
-	modelURL: "resources/pear.json",
+	model: {
+			name: "pear.json",
+			uri: "resources/pear.json",
+	},
 	isLockRotationY: false,
 	isLockRotationX: false,
 	modelRotationTheta: 0,
@@ -128,7 +131,7 @@ var main = function()
 		vertexBuffer: false,
 		meshes: false
 	};
-  GFX.loadModelJson(gl, ViewParameters.modelURL, modelData, function() {animate(0);});
+  GFX.loadModelJson(gl, ViewParameters.model.uri, modelData, function() {animate(0);});
 
 	// ------------------------------------
 	// matrices
@@ -152,8 +155,8 @@ var main = function()
 		var dt=time-time_old;
 		time_old=time;
 
-		if (ViewParameters.modelURL !== modelData.modelURL) {
-			GFX.loadModel(gl, ViewParameters.modelURL, modelData, function() {
+		if (ViewParameters.model.uri !== modelData.modelURL) {
+			GFX.loadModel(gl, ViewParameters.model, modelData, function() {
 				console.log("Loaded: "+modelData.modelURL);
 			});
 		}

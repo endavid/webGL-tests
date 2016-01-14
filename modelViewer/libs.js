@@ -83,16 +83,19 @@ var GFX = {
 	},
 
 	// tries to get the datatype
-	loadModel: function(gl, file, modelData, callback)
+	loadModel: function(gl, model, modelData, callback)
 	{
-		var ext = GFX.getFileExtension(file);
+		var ext = GFX.getFileExtension(model.uri);
+		if (ext === "") {
+			ext = GFX.getFileExtension(model.name);
+		}
 		var fn = GFX["loadModel"+ext];
-		if(typeof fn === 'function') {
-			fn(gl, file, modelData, callback);
+		if(ext !== "" && typeof fn === 'function') {
+			fn(gl, model.uri, modelData, callback);
 		} else {
 			window.alert("Unsupported format: "+ext);
 		}
-		modelData.modelURL = file;
+		modelData.modelURL = model.uri;
 	},
 
 	// format:
@@ -126,13 +129,13 @@ var GFX = {
 		});
 	},
 
-	loadModelJson: function(gl, file, modelData, callback)
+	loadModelJson: function(gl, uri, modelData, callback)
 	{
 		// free previous resources
 		GFX.destroyBuffers(gl, modelData);
-		modelData.modelURL = file;
-		$.getJSON(file, function(model) {
-			GFX.initModelFromJson(gl, modelData, file.substr(0,file.lastIndexOf('/')), model);
+		modelData.modelURL = uri;
+		$.getJSON(uri, function(model) {
+			GFX.initModelFromJson(gl, modelData, uri.substr(0,uri.lastIndexOf('/')), model);
 			callback();
 		});
 	},
@@ -262,6 +265,9 @@ var GFX = {
 	// returns the extension in Camel case. Eg. Json, Obj
 	getFileExtension: function(file) {
 		var iDot = file.lastIndexOf('.');
+		if (iDot < 0) {
+			return "";
+		}
 		var ext = file.substr(iDot+1).toLowerCase();
 		return ext.substr(0,1).toUpperCase()+ext.substr(1);
 	},
