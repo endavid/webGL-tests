@@ -83,7 +83,7 @@ var GFX = {
 	},
 
 	// tries to get the datatype
-	loadModel: function(gl, model, modelData, callback)
+	loadModel: function(gl, model, modelData, imageUris, callback)
 	{
 		var ext = GFX.getFileExtension(model.uri);
 		if (ext === "") {
@@ -91,7 +91,7 @@ var GFX = {
 		}
 		var fn = GFX["loadModel"+ext];
 		if(ext !== "" && typeof fn === 'function') {
-			fn(gl, model.uri, modelData, callback);
+			fn(gl, model.uri, modelData, imageUris, callback);
 		} else {
 			window.alert("Unsupported format: "+ext);
 		}
@@ -106,7 +106,7 @@ var GFX = {
 	//				 indices: // faces of the submesh
 	//			}]
 	// }
-	initModelFromJson: function(gl, modelData, textureDir, model) {
+	initModelFromJson: function(gl, modelData, imageUris, model) {
 		//vertices
 		modelData.vertexBuffer= gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, modelData.vertexBuffer);
@@ -119,7 +119,7 @@ var GFX = {
 			var mesh = {
 				indexBuffer: gl.createBuffer(),
 				numPoints: m.indices.length,
-				texture: m.texture ? GFX.loadTexture(gl, textureDir + "/" + m.texture) : false
+				texture: m.texture ? imageUris[m.texture] !== undefined ? GFX.loadTexture(gl, imageUris[m.texture]) : false : false
 			};
 			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
 			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
@@ -129,13 +129,13 @@ var GFX = {
 		});
 	},
 
-	loadModelJson: function(gl, uri, modelData, callback)
+	loadModelJson: function(gl, uri, modelData, imageUris, callback)
 	{
 		// free previous resources
 		GFX.destroyBuffers(gl, modelData);
 		modelData.modelURL = uri;
 		$.getJSON(uri, function(model) {
-			GFX.initModelFromJson(gl, modelData, uri.substr(0,uri.lastIndexOf('/')), model);
+			GFX.initModelFromJson(gl, modelData, imageUris, model);
 			callback();
 		});
 	},
@@ -222,7 +222,7 @@ var GFX = {
 		return model;
 	},
 
-	loadModelObj: function(gl, file, modelData, callback)
+	loadModelObj: function(gl, file, modelData, imageUris, callback)
 	{
 		$.ajax({
 			async: true,
@@ -230,7 +230,7 @@ var GFX = {
 			success: function(data) {
 				var model = GFX.parseObjWavefront(data);
 				model.name = GFX.getFileNameWithoutExtension(file);
-				GFX.initModelFromJson(gl, modelData, file.substr(0,file.lastIndexOf('/')), model);
+				GFX.initModelFromJson(gl, modelData, imageUris, model);
 				callback();
 			},
 			dataType: 'text'

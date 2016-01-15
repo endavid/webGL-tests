@@ -4,6 +4,11 @@ var ViewParameters = {
 			name: "pear.json",
 			uri: "resources/pear.json",
 	},
+	imageUris: {
+		"banana.png": "resources/banana.png",
+		"orange.png": "resources/orange.png",
+		"pear.png": "resources/pear.png"
+	},
 	isLockRotationY: false,
 	isLockRotationX: false,
 	modelRotationTheta: 0,
@@ -131,7 +136,7 @@ var main = function()
 		vertexBuffer: false,
 		meshes: false
 	};
-  GFX.loadModelJson(gl, ViewParameters.model.uri, modelData, function() {animate(0);});
+  GFX.loadModelJson(gl, ViewParameters.model.uri, modelData, ViewParameters.imageUris, function() {animate(0);});
 
 	// ------------------------------------
 	// matrices
@@ -156,7 +161,7 @@ var main = function()
 		time_old=time;
 
 		if (ViewParameters.model.uri !== modelData.modelURL) {
-			GFX.loadModel(gl, ViewParameters.model, modelData, function() {
+			GFX.loadModel(gl, ViewParameters.model, modelData, ViewParameters.imageUris, function() {
 				console.log("Loaded: "+modelData.modelURL);
 			});
 		}

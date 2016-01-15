@@ -47,7 +47,7 @@ function populateControls() {
     );
   };
 
-  var createDropdownList = function(id, list, callback) {
+  function createDropdownList(id, list, callback) {
     var updateFunction = function(event) {
       var i = event.target.selectedIndex;
       var obj = {name: event.target.options[i].innerHTML, uri: event.target.value};
@@ -59,7 +59,15 @@ function populateControls() {
     });
     return $('<tr>').attr('id',id+"_parent").append($('<td>')
             .append(id+": ").append(select));
-  };
+  }
+
+  function addUrisToDropdownList(id, list) {
+    var select = $('#'+id);
+    list.forEach(function (obj) {
+      var option = $('<option>').attr('value', obj.uri).append(obj.name);
+      select.append(option);
+    });
+  }
 
   var createButton = function(id, text, callback) {
     return $('<tr>').attr('id',id+"_parent").append($('<td>')
@@ -91,7 +99,7 @@ function populateControls() {
       .append($("<input>")
         .attr('id', id)
         .attr('type', 'file')
-        .attr('accept', '.obj,.json')
+        .attr('accept', '.obj,.json,image/*')
         .attr('multiple', '')
         .change(updateFunction)
       )
@@ -135,19 +143,31 @@ function populateControls() {
     $("#modelRotationPhi_number").attr('value', ViewParameters.modelRotationPhi);
   };
 
+
+  function onChangeFileBrowser(values) {
+    var models = [];
+    for (var i = 0 ; i < values.length; i++) {
+      var ext = GFX.getFileExtension(values[i].name);
+      if (ext === "Json" || ext === "Obj") {
+        models.push(values[i]);
+      } else { // the rest should be images!
+        ViewParameters.imageUris[values[i].name] = values[i].uri;
+      }
+    }
+    // add models to preset list
+    if (models.length > 0) {
+      ViewParameters.model = models[0];
+      addUrisToDropdownList("Presets", models);
+    }
+  }
+
+
   var modelPresets = ["pear.json", "banana.json", "orange.json", "banana.obj"].map(function(e) {
     return {name: e, value: "resources/"+e};
   });
   // Create the UI controls
   addGroup("File", [
-    createFileBrowser("fileBrowser", function(value) {
-      console.log(value);
-      // todo: add to preset list
-      // load first model selected
-      if (value.length > 0) {
-        ViewParameters.model = value[0];
-      }
-    }),
+    createFileBrowser("fileBrowser", onChangeFileBrowser),
     createDropdownList("Presets", modelPresets, function(obj) {
       ViewParameters.model = obj;
     }),
