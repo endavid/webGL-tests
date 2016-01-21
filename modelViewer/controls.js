@@ -79,6 +79,23 @@ function populateControls() {
             );
   };
 
+  function createButtonWithOptions(id, buttonText, midText, options, callback) {
+    var select = $('<select>').attr('id', id+"_select");
+    options.forEach(function (obj) {
+      select.append($('<option>').attr('value', obj.value).append(obj.name));
+    });
+    return $('<tr>').attr('id',id+"_parent").append($('<td>')
+            .append($("<button>")
+              .attr('id', id)
+              .attr('type', "button")
+              .click(callback)
+              .append(buttonText)
+              )
+              .append(midText)
+              .append(select)
+            );
+  }
+
   var createTitle = function(id) {
     return $('<tr>').append($('<td>').attr('class', "selected").append(id));
   };
@@ -171,9 +188,17 @@ function populateControls() {
     createDropdownList("Presets", modelPresets, function(obj) {
       ViewParameters.model = obj;
     }),
-    createButton("saveObj", "Save as .OBJ", function(e) {
-      GFX.exportObjModel(ViewParameters.model);
-    })
+    createButtonWithOptions("saveFile", "Save", " as ", [{name: "OBJ Wavefront", value:".obj"}, {name: "Json", value:".json"}], function (e) {
+      var modelType = $("#"+e.target.id+"_select").attr("value");
+      console.log(modelType);
+      if (modelType === ".obj") {
+        GFX.exportObjModel(ViewParameters.model);
+      } else if (modelType === ".json") {
+        GFX.exportJsonModel(ViewParameters.model);
+      } else {
+        console.error("Unsupported model type: "+modelType);
+      }
+    }),
   ]);
   addGroup("Model Settings", [
     createCheckbox("lockRotationY", ViewParameters.isLockRotationY, function(value) {

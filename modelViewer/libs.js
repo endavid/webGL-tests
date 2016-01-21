@@ -83,19 +83,16 @@ var GFX = {
 	},
 
 	// tries to get the datatype
-	loadModel: function(gl, model, modelData, imageUris, callback)
+	loadModel: function(gl, modelFile, modelData, imageUris, callback)
 	{
-		var ext = GFX.getFileExtension(model.uri);
-		if (ext === "") {
-			ext = GFX.getFileExtension(model.name);
-		}
+		var ext = GFX.getModelFileExtension(modelFile);
 		var fn = GFX["loadModel"+ext];
 		if(ext !== "" && typeof fn === 'function') {
-			fn(gl, model.uri, modelData, imageUris, callback);
+			fn(gl, modelFile, modelData, imageUris, callback);
 		} else {
 			window.alert("Unsupported format: "+ext);
 		}
-		modelData.modelURL = model.uri;
+		modelData.modelURL = modelFile.uri;
 	},
 
 	// format:
@@ -129,12 +126,12 @@ var GFX = {
 		});
 	},
 
-	loadModelJson: function(gl, uri, modelData, imageUris, callback)
+	loadModelJson: function(gl, modelFile, modelData, imageUris, callback)
 	{
 		// free previous resources
 		GFX.destroyBuffers(gl, modelData);
-		modelData.modelURL = uri;
-		$.getJSON(uri, function(model) {
+		modelData.modelURL = modelFile.uri;
+		$.getJSON(modelFile.uri, function(model) {
 			GFX.initModelFromJson(gl, modelData, imageUris, model);
 			callback();
 		});
@@ -151,6 +148,7 @@ var GFX = {
 			vertices: [],
 			meshes: []
 		};
+		var lastGroup = -1;
 		lines.forEach(function(s) {
 			var m;
 			m = /v\s(\-?\d+(?:\.\d+)?)\s(\-?\d+(?:\.\d+)?)\s(\-?\d+(?:\.\d+)?)/.exec(s);
@@ -173,9 +171,18 @@ var GFX = {
 				uvs.push(parseFloat(m[2]));
 				return;
 			}
+			m = /g\s(.*)/.exec(s);
+			if (m) {
+				meshes.push({name: m[1], indices: []});
+				lastGroup++;
+			}
 			m = /usemap\s(.*)/.exec(s);
 			if (m) {
-				meshes.push({material: m[1], indices: []});
+				if (lastGroup >= 0) {
+					meshes[lastGroup].material = m[1];
+				} else {
+					meshes.push({material: m[1], indices: []});
+				}
 				return;
 			}
 			m = /f\s(\d+(?:\/\d+){0,2})\s(\d+(?:\/\d+){0,2})\s(\d+(?:\/\d+){0,2})/.exec(s);
@@ -222,19 +229,32 @@ var GFX = {
 		return model;
 	},
 
-	loadModelObj: function(gl, file, modelData, imageUris, callback)
+	loadModelObj: function(gl, modelFile, modelData, imageUris, callback)
 	{
-		$.ajax({
-			async: true,
-			url: file,
-			success: function(data) {
-				var model = GFX.parseObjWavefront(data);
-				model.name = GFX.getFileNameWithoutExtension(file);
-				GFX.initModelFromJson(gl, modelData, imageUris, model);
-				callback();
-			},
-			dataType: 'text'
+		GFX.modelFileToJson(modelFile, function(model) {
+			GFX.initModelFromJson(gl, modelData, imageUris, model);
 		});
+	},
+
+	modelFileToJson: function(modelFile, callback)
+	{
+		var ext = GFX.getModelFileExtension(modelFile);
+		if (ext === "Obj") {
+			$.ajax({
+				async: true,
+				url: modelFile.uri,
+				success: function(data) {
+					var model = GFX.parseObjWavefront(data);
+					model.name = GFX.getFileNameWithoutExtension(modelFile.name) + ".json";
+					callback(model);
+				},
+				dataType: 'text'
+			});
+		} else if (ext === "Json") {
+			$.getJSON(modelFile.uri, function(model) {
+				callback(model);
+			});
+		}
 	},
 
 	loadTexture: function(gl, image_URL) {
@@ -272,9 +292,18 @@ var GFX = {
 		return ext.substr(0,1).toUpperCase()+ext.substr(1);
 	},
 
-	exportObjModel: function(file) {
-		var filename = GFX.getFileNameWithoutExtension(file);
-		$.getJSON(file, function(model) {
+	getModelFileExtension: function(modelFile) {
+		var ext = GFX.getFileExtension(modelFile.uri);
+		if (ext === "") {
+			ext = GFX.getFileExtension(modelFile.name);
+		}
+		return ext;
+	},
+
+	exportObjModel: function(modelFile) {
+		var ext = GFX.getModelFileExtension(modelFile);
+		var filename = GFX.getFileNameWithoutExtension(modelFile.name);
+		GFX.modelFileToJson(modelFile, function(model) {
 			var out = "# Vertices\n";
 			var i;
 			for (i = 0; i < model.vertices.length; i+=8 ) {
@@ -307,6 +336,18 @@ var GFX = {
 
 		});
 	},
+
+	exportJsonModel: function(modelFile) {
+		var ext = GFX.getModelFileExtension(modelFile);
+		var filename = GFX.getFileNameWithoutExtension(modelFile.name);
+		GFX.modelFileToJson(modelFile, function(model) {
+			var out = JSON.stringify(model, null, "  ");
+			saveAs(
+				new Blob([out], {type: "text/plain;charset=" + document.characterSet}),
+				filename + ".json"
+			);
+		});
+	}
 };
 
 /** Math libs */

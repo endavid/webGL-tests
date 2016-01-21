@@ -136,7 +136,7 @@ var main = function()
 		vertexBuffer: false,
 		meshes: false
 	};
-  GFX.loadModelJson(gl, ViewParameters.model.uri, modelData, ViewParameters.imageUris, function() {animate(0);});
+  GFX.loadModelJson(gl, ViewParameters.model, modelData, ViewParameters.imageUris, function() {animate(0);});
 
 	// ------------------------------------
 	// matrices
