@@ -113,10 +113,11 @@ var GFX = {
 		//submeshes
 		modelData.meshes=[];
 		model.meshes.forEach(function (m){
+			var texName = m.texture? m.texture : "uvChecker";
 			var mesh = {
 				indexBuffer: gl.createBuffer(),
 				numPoints: m.indices.length,
-				texture: m.texture ? imageUris[m.texture] !== undefined ? GFX.loadTexture(gl, imageUris[m.texture]) : false : false
+				texture: imageUris[texName] !== undefined ? GFX.loadTexture(gl, imageUris[texName]) : false
 			};
 			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
 			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,

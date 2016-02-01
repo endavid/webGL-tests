@@ -7,7 +7,8 @@ var ViewParameters = {
 	imageUris: {
 		"banana.png": "resources/banana.png",
 		"orange.png": "resources/orange.png",
-		"pear.png": "resources/pear.png"
+		"pear.png": "resources/pear.png",
+		"uvChecker": "resources/UVTextureChecker4096.png"
 	},
 	isLockRotationY: false,
 	isLockRotationX: false,
