@@ -151,21 +151,21 @@ var GFX = {
 		var lastGroup = -1;
 		lines.forEach(function(s) {
 			var m;
-			m = /v\s(\-?\d+(?:\.\d+)?)\s(\-?\d+(?:\.\d+)?)\s(\-?\d+(?:\.\d+)?)/.exec(s);
+			m = /v\s(.+)\s(.+)\s(.+)/.exec(s);
 			if (m) {
 				m.slice(1, 4).forEach(function(val){
 					positions.push(parseFloat(val));
 				});
 				return;
 			}
-			m = /vn\s(\-?\d+(?:\.\d+)?)\s(\-?\d+(?:\.\d+)?)\s(\-?\d+(?:\.\d+)?)/.exec(s);
+			m = /vn\s(.+)\s(.+)\s(.+)/.exec(s);
 			if (m) {
 				m.slice(1, 4).forEach(function(val){
 					normals.push(parseFloat(val));
 				});
 				return;
 			}
-			m = /vt\s(\-?\d+(?:\.\d+)?)\s(\-?\d+(?:\.\d+)?)/.exec(s);
+			m = /vt\s(.+)\s(.+)/.exec(s);
 			if (m) {
 				uvs.push(parseFloat(m[1]));
 				uvs.push(parseFloat(m[2]));
