@@ -113,7 +113,7 @@ var GFX = {
 		//submeshes
 		modelData.meshes=[];
 		model.meshes.forEach(function (m){
-			var texName = m.texture? m.texture : "uvChecker";
+			var texName = m.texture? m.texture : "missing";
 			var mesh = {
 				indexBuffer: gl.createBuffer(),
 				numPoints: m.indices.length,

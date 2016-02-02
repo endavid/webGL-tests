@@ -8,7 +8,7 @@ var ViewParameters = {
 		"banana.png": "resources/banana.png",
 		"orange.png": "resources/orange.png",
 		"pear.png": "resources/pear.png",
-		"uvChecker": "resources/UVTextureChecker4096.png"
+		"missing": "resources/UVTextureChecker4096.png"
 	},
 	isLockRotationY: false,
 	isLockRotationX: false,
@@ -16,6 +16,7 @@ var ViewParameters = {
 	modelRotationPhi: 0,
 	cameraDistance: -6,
 	cameraHeight: -0.7,
+	needsReload: false,
 	onRotation: function() {},
 };
 
@@ -161,7 +162,8 @@ var main = function()
 		var dt=time-time_old;
 		time_old=time;
 
-		if (ViewParameters.model.uri !== modelData.modelURL) {
+		if (ViewParameters.model.uri !== modelData.modelURL || ViewParameters.needsReload) {
+			ViewParameters.needsReload = false;
 			GFX.loadModel(gl, ViewParameters.model, modelData, ViewParameters.imageUris, function() {
 				console.log("Loaded: "+modelData.modelURL);
 			});

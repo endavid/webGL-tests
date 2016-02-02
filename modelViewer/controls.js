@@ -182,6 +182,9 @@ function populateControls() {
   var modelPresets = ["pear.json", "banana.json", "orange.json", "banana.obj"].map(function(e) {
     return {name: e, value: "resources/"+e};
   });
+  var missingTexturePresets = [
+    {name: "uvChecker", value: "resources/UVTextureChecker4096.png"},
+    {name: "white", value: "resources/white.png"}];
   // Create the UI controls
   addGroup("File", [
     createFileBrowser("fileBrowser", onChangeFileBrowser),
@@ -224,6 +227,12 @@ function populateControls() {
     createSlider("cameraHeight",
       ViewParameters.cameraHeight, -2, 2, 0.01, function(value) {
         ViewParameters.cameraHeight = parseFloat(value);
+    })
+  ]);
+  addGroup("Shader Settings", [
+    createDropdownList("Missing texture", missingTexturePresets, function(obj) {
+      ViewParameters.imageUris.missing = obj.uri;
+      ViewParameters.needsReload = true;
     })
   ]);
 }
