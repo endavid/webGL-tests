@@ -10,12 +10,14 @@ var ViewParameters = {
 		"pear.png": "resources/pear.png",
 		"missing": "resources/UVTextureChecker4096.png"
 	},
+	isZAxisUp: false,
 	isLockRotationY: false,
 	isLockRotationX: false,
 	modelRotationTheta: 0,
 	modelRotationPhi: 0,
 	cameraDistance: -6,
 	cameraHeight: -0.7,
+	lightDirection: [0.21, 0.072, 0.71],
 	needsReload: false,
 	onRotation: function() {},
 };
@@ -31,6 +33,8 @@ function Resources(gl, width, height)
 	this.height = height;
 	// shaders
 	this.shaderLit = null;
+	this.uniforms = null;
+	this.attribs = null;
 	this.initShaders();
 }
 
@@ -40,17 +44,23 @@ Resources.prototype.initShaders = function()
 	this.shaderLit = GFX.useShader(gl, "shaders/geometry.vs", "shaders/lighting.fs");
 
 	// vertex attributes
-	this.attribUv = gl.getAttribLocation(this.shaderLit, "uv");
-	this.attribPosition = gl.getAttribLocation(this.shaderLit, "position");
-	this.attribNormal = gl.getAttribLocation(this.shaderLit, "normal");
+	this.attribs = {
+		uv: 			gl.getAttribLocation(this.shaderLit, "uv"),
+		position: gl.getAttribLocation(this.shaderLit, "position"),
+		normal: 	gl.getAttribLocation(this.shaderLit, "normal")
+	};
 	// uniforms
-	this.uniPmatrix = gl.getUniformLocation(this.shaderLit, "Pmatrix");
-	this.uniVmatrix = gl.getUniformLocation(this.shaderLit, "Vmatrix");
-	this.uniMmatrix = gl.getUniformLocation(this.shaderLit, "Mmatrix");
-	this.uniSampler = gl.getUniformLocation(this.shaderLit, "sampler");
-	gl.enableVertexAttribArray(this.attribUv);
-	gl.enableVertexAttribArray(this.attribPosition);
-	gl.enableVertexAttribArray(this.attribNormal);
+	this.uniforms = {
+		matrixP: gl.getUniformLocation(this.shaderLit, "Pmatrix"),
+		matrixV: gl.getUniformLocation(this.shaderLit, "Vmatrix"),
+		matrixM: gl.getUniformLocation(this.shaderLit, "Mmatrix"),
+		lightDirection: gl.getUniformLocation(this.shaderLit, "lightDirection"),
+		sampler: gl.getUniformLocation(this.shaderLit, "sampler")
+	};
+	var attribKeys = Object.keys(this.attribs);
+	for (var i = 0; i < attribKeys.length; i++ ) {
+		gl.enableVertexAttribArray(this.attribs[attribKeys[i]]);
+	}
 };
 
 Resources.prototype.setDefaultTextureParameters = function()
@@ -186,15 +196,15 @@ var main = function()
 
 		if (modelData.vertexBuffer) {
 			gl.useProgram(res.shaderLit);
-			gl.uniform1i(res.uniSampler, 0);
-			gl.uniformMatrix4fv(res.uniPmatrix, false, projectionMatrix);
-			gl.uniformMatrix4fv(res.uniVmatrix, false, viewMatrix);
-			gl.uniformMatrix4fv(res.uniMmatrix, false, modelMatrix);
+			gl.uniform1i(res.uniforms.sampler, 0);
+			gl.uniformMatrix4fv(res.uniforms.matrixP, false, projectionMatrix);
+			gl.uniformMatrix4fv(res.uniforms.matrixV, false, viewMatrix);
+			gl.uniformMatrix4fv(res.uniforms.matrixM, false, modelMatrix);
+			gl.uniform3f(res.uniforms.lightDirection, ViewParameters.lightDirection[0], ViewParameters.lightDirection[1], ViewParameters.lightDirection[2]);
 			gl.bindBuffer(gl.ARRAY_BUFFER, modelData.vertexBuffer);
-			gl.vertexAttribPointer(res.attribPosition, 3, gl.FLOAT, false, 4*(3+3+2), 0);
-			gl.vertexAttribPointer(res.attribNormal, 3, gl.FLOAT, false, 4*(3+3+2), 4*3);
-			gl.vertexAttribPointer(res.attribUv, 2, gl.FLOAT, false, 4*(3+3+2), 4*(3+3));
-			gl.uniformMatrix4fv(res.uniMmatrix, false, modelMatrix);
+			gl.vertexAttribPointer(res.attribs.position, 3, gl.FLOAT, false, 4*(3+3+2), 0);
+			gl.vertexAttribPointer(res.attribs.normal, 3, gl.FLOAT, false, 4*(3+3+2), 4*3);
+			gl.vertexAttribPointer(res.attribs.uv, 2, gl.FLOAT, false, 4*(3+3+2), 4*(3+3));
 
 			// draw all submeshes
 			modelData.meshes.forEach(function (mesh) {

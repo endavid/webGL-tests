@@ -207,6 +207,10 @@ function populateControls() {
     createCheckbox("lockRotationY", ViewParameters.isLockRotationY, function(value) {
       ViewParameters.isLockRotationY = value;
     }),
+    createCheckbox("z_up", ViewParameters.isZAxisUp, function(value) {
+      ViewParameters.isZAxisUp = value;
+      ViewParameters.needsReload = true;
+    }),
     createSlider("modelRotationTheta",
       ViewParameters.modelRotationTheta, 0, 2 * Math.PI, 0.01, function(value) {
         ViewParameters.modelRotationTheta = parseFloat(value);
