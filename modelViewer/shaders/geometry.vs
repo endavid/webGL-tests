@@ -6,13 +6,14 @@ uniform mat4 Vmatrix;
 uniform mat4 Mmatrix;
 varying vec2 vUV;
 varying vec3 vNormal;
-varying float fWeight; ///< Weight for the OIT function
+varying vec3 cameraPosition;
+varying vec3 worldPosition;
 void main(void) { // pre-built function
-	gl_Position = Pmatrix * Vmatrix * Mmatrix * vec4(position, 1.);
+  vec4 worldPos = Mmatrix * vec4(position, 1.);
+	worldPosition = worldPos.xyz;
+	gl_Position = Pmatrix * Vmatrix * worldPos;
 	vNormal = vec3(Mmatrix * vec4(normal, 0.));
 	vUV = uv;
-	// distance from camera
-    float w = gl_Position.z / gl_Position.w;
-    // Gaussian
-    fWeight = 100.0 * exp(-0.001 * w * w);
+	vec4 camTranslation = Vmatrix * vec4(0,0,0,1);
+	cameraPosition = -camTranslation.xyz;
 }
