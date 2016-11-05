@@ -116,7 +116,8 @@ function populateControls() {
       .append($("<input>")
         .attr('id', id)
         .attr('type', 'file')
-        .attr('accept', '.obj,.json,image/*')
+        // .obj, .json doesn't work in Safari...
+        //.attr('accept', '.obj,.json,.mtl,image/*')
         .attr('multiple', '')
         .change(updateFunction)
       )
@@ -194,13 +195,7 @@ function populateControls() {
     createButtonWithOptions("saveFile", "Save", " as ", [{name: "OBJ Wavefront", value:".obj"}, {name: "Json", value:".json"}], function (e) {
       var modelType = $("#"+e.target.id+"_select").attr("value");
       console.log(modelType);
-      if (modelType === ".obj") {
-        GFX.exportObjModel(ViewParameters.model);
-      } else if (modelType === ".json") {
-        GFX.exportJsonModel(ViewParameters.model);
-      } else {
-        console.error("Unsupported model type: "+modelType);
-      }
+      GFX.exportModel(ViewParameters.model, modelType);
     }),
   ]);
   addGroup("Model Settings", [

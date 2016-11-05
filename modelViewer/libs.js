@@ -138,98 +138,6 @@ var GFX = {
 		});
 	},
 
-	parseObjWavefront: function(data) {
-		var lines = data.split("\n");
-		var positions = [];
-		var normals = [];
-		var uvs = [];
-		var meshes = [];
-		var uniqueIndexTriplets = {};
-		var model = {
-			vertices: [],
-			meshes: []
-		};
-		var lastGroup = -1;
-		lines.forEach(function(s) {
-			var m;
-			m = /v\s(.+)\s(.+)\s(.+)/.exec(s);
-			if (m) {
-				m.slice(1, 4).forEach(function(val){
-					positions.push(parseFloat(val));
-				});
-				return;
-			}
-			m = /vn\s(.+)\s(.+)\s(.+)/.exec(s);
-			if (m) {
-				m.slice(1, 4).forEach(function(val){
-					normals.push(parseFloat(val));
-				});
-				return;
-			}
-			m = /vt\s(.+)\s(.+)/.exec(s);
-			if (m) {
-				uvs.push(parseFloat(m[1]));
-				uvs.push(parseFloat(m[2]));
-				return;
-			}
-			m = /g\s(.*)/.exec(s);
-			if (m) {
-				meshes.push({name: m[1], indices: []});
-				lastGroup++;
-			}
-			m = /usemap\s(.*)/.exec(s);
-			if (m) {
-				if (lastGroup >= 0) {
-					meshes[lastGroup].material = m[1];
-				} else {
-					meshes.push({material: m[1], indices: []});
-				}
-				return;
-			}
-			m = /f\s(\d+(?:\/\d+){0,2})\s(\d+(?:\/\d+){0,2})\s(\d+(?:\/\d+){0,2})/.exec(s);
-			if (m) {
-				m.slice(1, 4).forEach(function(val) {
-					if (uniqueIndexTriplets[val] === undefined) {
-						uniqueIndexTriplets[val] = 1;
-					} else {
-						uniqueIndexTriplets[val]++;
-					}
-					meshes[meshes.length-1].indices.push(val);
-					//var triplet = val.split("/").map(function(d) {return parseInt(d)-1});
-					//meshes[meshes.length-1].indices.push(triplet);
-				});
-			}
-		});
-		var countSharedVertices = 0;
-		var uniqueIndexKeys = Object.keys(uniqueIndexTriplets);
-		var newVertexIndex = 0;
-		uniqueIndexKeys.forEach(function(k) {
-			if (uniqueIndexTriplets[k] > 1) {
-				countSharedVertices++;
-			}
-			uniqueIndexTriplets[k] = newVertexIndex++;
-			var triplet = k.split("/").map(function(d) {return parseInt(d)-1;});
-			model.vertices.push(positions[3*triplet[0]]);
-			model.vertices.push(positions[3*triplet[0]+1]);
-			model.vertices.push(positions[3*triplet[0]+2]);
-			model.vertices.push(triplet[1]===undefined?0:normals[3*triplet[1]]);
-			model.vertices.push(triplet[1]===undefined?0:normals[3*triplet[1]+1]);
-			model.vertices.push(triplet[1]===undefined?0:normals[3*triplet[1]+2]);
-			model.vertices.push(triplet[2]===undefined?0:uvs[2*triplet[2]]);
-			model.vertices.push(triplet[2]===undefined?0:uvs[2*triplet[2]+1]);
-		});
-		console.log("# shared vertices: "+countSharedVertices+"/"+positions.length);
-		meshes.forEach(function(m){
-			var submesh = { texture: m.material, indices: [] };
-			// populate with new indices
-			m.indices.forEach(function(i) {
-				submesh.indices.push(uniqueIndexTriplets[i]);
-			});
-			model.meshes.push(submesh);
-		});
-		return model;
-	},
-
 	loadModelObj: function(gl, modelFile, modelData, imageUris, callback)
 	{
 		GFX.modelFileToJson(modelFile, function(model) {
@@ -245,7 +153,7 @@ var GFX = {
 				async: true,
 				url: modelFile.uri,
 				success: function(data) {
-					var model = GFX.parseObjWavefront(data);
+					var model = window.WavefrontUtils.parseObjWavefront(data);
 					model.name = GFX.getFileNameWithoutExtension(modelFile.name) + ".json";
 					callback(model);
 				},
@@ -301,52 +209,24 @@ var GFX = {
 		return ext;
 	},
 
-	exportObjModel: function(modelFile) {
+	exportModel: function(modelFile, modelType) {
 		var ext = GFX.getModelFileExtension(modelFile);
 		var filename = GFX.getFileNameWithoutExtension(modelFile.name);
-		GFX.modelFileToJson(modelFile, function(model) {
-			var out = "# Vertices\n";
-			var i;
-			for (i = 0; i < model.vertices.length; i+=8 ) {
-				out += "v " + model.vertices[i] + " " + model.vertices[i+1] + " " + model.vertices[i+2] + "\n";
-			}
-			out += "# Normals\n";
-			for (i = 0; i < model.vertices.length; i+=8 ) {
-				out += "vn " + model.vertices[i+3] + " " + model.vertices[i+4] + " " + model.vertices[i+5] + "\n";
-			}
-			out += "# Texture coordinates\n";
-			for (i = 0; i < model.vertices.length; i+=8 ) {
-				out += "vt " + model.vertices[i+6] + " " + model.vertices[i+7] + "\n";
-			}
-			model.meshes.forEach(function (m) {
-				out += "usemap " + m.texture + "\n"; // old Wavefront texture map
-				for (var i = 0; i < m.indices.length; i+=3 ) {
-					var i1 = m.indices[i] + 1;
-					var i2 = m.indices[i+1] + 1;
-					var i3 = m.indices[i+2] + 1;
-					out += "f " + i1 +"/" + i1 + "/" + i1 + " ";
-					out += i2 +"/" + i2 + "/" + i2 + " ";
-					out += i3 +"/" + i3 + "/" + i3 + "\n";
-				}
-			});
-
+		var onExportSuccess = function(text) {
 			saveAs(
-				new Blob([out], {type: "text/plain;charset=" + document.characterSet}),
-				filename + ".obj"
+				new Blob([text], {type: "text/plain;charset=" + document.characterSet}),
+				filename + modelType
 			);
-
-		});
-	},
-
-	exportJsonModel: function(modelFile) {
-		var ext = GFX.getModelFileExtension(modelFile);
-		var filename = GFX.getFileNameWithoutExtension(modelFile.name);
+		};
 		GFX.modelFileToJson(modelFile, function(model) {
-			var out = JSON.stringify(model, null, "  ");
-			saveAs(
-				new Blob([out], {type: "text/plain;charset=" + document.characterSet}),
-				filename + ".json"
-			);
+			if (modelType === ".obj") {
+				window.WavefrontUtils.exportObjModel(model, onExportSuccess);
+			} else if (modelType === ".json") {
+				var out = JSON.stringify(model, null, "  ");
+				onExportSuccess(out);
+			} else {
+				console.error("Unsupported model type: "+modelType);
+			}
 		});
 	}
 };
