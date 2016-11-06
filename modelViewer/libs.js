@@ -244,13 +244,67 @@
 				if (modelType === ".obj") {
 					window.WavefrontUtils.exportObjModel(model, onExportSuccess);
 				} else if (modelType === ".json") {
-					var out = JSON.stringify(model, null, "  ");
+          var out = GFX.modelStringify(model);
 					onExportSuccess(out);
 				} else {
 					console.error("Unsupported model type: "+modelType);
 				}
 			});
-		}
+		},
+
+    // JSON.stringify generates array that are difficult to read...
+    modelStringify: function(model) {
+      //return JSON.stringify(model, null, "  ");
+      var s = "{\n";
+      // JSON.stringify everything but "vertices" and "meshes"
+      Object.keys(model).forEach(function (k) {
+        if (k !== "vertices" && k !== "meshes") {
+          s += "\"" + k + "\": " + JSON.stringify(model[k], null, "  ");
+          s += ",\n";
+        }
+      });
+      // manually format vertices
+      s += "\"vertices\": [\n";
+      for (var i = 0; i < model.vertices.length; i+=8) {
+        s += "  " + model.vertices[i];
+        s += ", " + model.vertices[i+1];
+        s += ", " + model.vertices[i+2];
+        s += ",    " + model.vertices[i+3];
+        s += ", " + model.vertices[i+4];
+        s += ", " + model.vertices[i+5];
+        s += ",    " + model.vertices[i+6];
+        s += ", " + model.vertices[i+7];
+        if (i+8 < model.vertices.length) {
+          s += ",";
+        }
+        s += "\n";
+      }
+      s += "],\n";
+      // manually format submeshes (indices)
+      s += "\"meshes\": [\n";
+      for (i = 0; i < model.meshes.length; i++) {
+        var m = model.meshes[i];
+        s += "  {\"material\": \"" + m.material + "\",\n";
+        s += "  \"indices\": [\n";
+        for (var j = 0; j < m.indices.length; j += 3) { // assume triangles
+          s += "    " + m.indices[j];
+          s += ", " + m.indices[j+1];
+          s += ", " + m.indices[j+2];
+          if (j + 3 < m.indices.length) {
+            s += ",";
+          }
+          s += "\n";
+        }
+        s += "  ]}";
+        if (i + 1 < model.meshes.length) {
+          s += ",";
+        }
+        s += "\n";
+      }
+      s += "]\n";
+      s +="}";
+      return s;
+    }
 	};
 
 	/** Math libs */
