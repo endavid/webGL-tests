@@ -71,8 +71,8 @@
 		{
 			if (modelData.meshes) {
 				modelData.meshes.forEach(function (m) {
-					if (m.texture && m.texture.webglTexture) {
-						gl.deleteTexture(m.texture.webglTexture);
+					if (m.albedoMap && m.albedoMap.webglTexture) {
+						gl.deleteTexture(m.albedoMap.webglTexture);
 					}
 					gl.deleteBuffer(m.indexBuffer);
 				});
@@ -116,9 +116,14 @@
 
 		// format:
 		// { name: // model name
+    //   materials: {
+    //     "name": {
+    //       albedoMap: "image.png",
+    //     }
+    //   },
 		//   vertices: // float array in this order: position (3), normal (3), uv (2)
 		//   meshes: // array of submeshes
-		//      [ {texture: // texture file name
+		//      [ {material: // material reference
 		//				 indices: // faces of the submesh
 		//			}]
 		// }
@@ -128,15 +133,18 @@
 			gl.bindBuffer(gl.ARRAY_BUFFER, modelData.vertexBuffer);
 			gl.bufferData(gl.ARRAY_BUFFER,
 										new Float32Array(model.vertices),
-				gl.STATIC_DRAW);
+				            gl.STATIC_DRAW);
 			//submeshes
 			modelData.meshes=[];
 			model.meshes.forEach(function (m){
-				var texName = m.texture? m.texture : "missing";
+        var mat = m.material !== undefined ? model.materials[m.material] : {};
+				var albedoMapName = mat.albedoMap || "missing";
+        // if the .dds texture is missing, try to find equivalent .png
+        var albedoMapUri = imageUris[albedoMapName] || imageUris[GFX.getFileNameWithoutExtension(albedoMapName)+".png"];
 				var mesh = {
 					indexBuffer: gl.createBuffer(),
 					numPoints: m.indices.length,
-					texture: imageUris[texName] !== undefined ? GFX.loadTexture(gl, imageUris[texName]) : false
+					albedoMap: albedoMapUri !== undefined ? GFX.loadTexture(gl, albedoMapUri) : false
 				};
 				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
 				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
@@ -162,7 +170,6 @@
       					url: params.materialUris[model.materialFile],
       					success: function(mtldata) {
                   model.materials = window.WavefrontUtils.parseMaterial(mtldata);
-                  console.log(model.materials);
       						callback(model);
       					},
       					dataType: 'text'

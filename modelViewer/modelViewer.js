@@ -10,6 +10,7 @@
 			"banana.png": "resources/banana.png",
 			"orange.png": "resources/orange.png",
 			"pear.png": "resources/pear.png",
+			"white": "resources/white.png",
 			"missing": "resources/UVTextureChecker4096.png"
 		},
 		materialUris: {
@@ -141,7 +142,7 @@
 		// Resources
 		// ------------------------------------
 		var res = new Resources(gl, canvas.width, canvas.height);
-
+		var whiteTexture = window.GFX.loadTexture(gl, ViewParameters.imageUris.white);
 		// ------------------------------------
 		// model data
 		// ------------------------------------
@@ -210,9 +211,12 @@
 
 				// draw all submeshes
 				modelData.meshes.forEach(function (mesh) {
-					if (mesh.texture && mesh.texture.webglTexture) {
-						gl.activeTexture(gl.TEXTURE0);
-						gl.bindTexture(gl.TEXTURE_2D, mesh.texture.webglTexture);
+					gl.activeTexture(gl.TEXTURE0);
+					if (mesh.albedoMap && mesh.albedoMap.webglTexture) {
+						gl.bindTexture(gl.TEXTURE_2D, mesh.albedoMap.webglTexture);
+					}
+					else {
+						gl.bindTexture(gl.TEXTURE_2D, whiteTexture.webglTexture);
 					}
 					gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
 					gl.drawElements(gl.TRIANGLES, mesh.numPoints, gl.UNSIGNED_SHORT, 0);

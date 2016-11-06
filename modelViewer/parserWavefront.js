@@ -10,6 +10,7 @@
       var meshes = [];
       var uniqueIndexTriplets = {};
       var model = {
+        materials: {},
         vertices: [],
         meshes: []
       };
@@ -47,6 +48,8 @@
         }
         m = /usemap\s(.*)/.exec(s);
         if (m) {
+          var material = { albedoMap: m[1] };
+          model.materials[m[1]] = material;
           if (lastGroup >= 0) {
             meshes[lastGroup].material = m[1];
           } else {
@@ -97,7 +100,7 @@
       });
       console.log("# shared vertices: "+countSharedVertices+"/"+positions.length);
       meshes.forEach(function(m){
-        var submesh = { texture: m.material, indices: [] };
+        var submesh = { material: m.material, indices: [] };
         // populate with new indices
         m.indices.forEach(function(i) {
           submesh.indices.push(uniqueIndexTriplets[i]);
