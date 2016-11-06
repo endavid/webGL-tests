@@ -171,6 +171,8 @@
         var ext = window.GFX.getFileExtension(values[i].name);
         if (ext === "Json" || ext === "Obj") {
           models.push(values[i]);
+        } else if (ext === "Mtl") {
+          window.ViewParameters.materialUris[values[i].name] = values[i].uri;
         } else { // the rest should be images!
           window.ViewParameters.imageUris[values[i].name] = values[i].uri;
         }
@@ -198,7 +200,7 @@
       createButtonWithOptions("saveFile", "Save", " as ", [{name: "OBJ Wavefront", value:".obj"}, {name: "Json", value:".json"}], function (e) {
         var modelType = $("#"+e.target.id+"_select").attr("value");
         console.log(modelType);
-        window.GFX.exportModel(window.ViewParameters.model, modelType);
+        window.GFX.exportModel(window.ViewParameters, modelType);
       }),
     ]);
     addGroup("Model Settings", [

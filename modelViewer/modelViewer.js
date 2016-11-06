@@ -12,6 +12,8 @@
 			"pear.png": "resources/pear.png",
 			"missing": "resources/UVTextureChecker4096.png"
 		},
+		materialUris: {
+		},
 		isZAxisUp: false,
 		isLockRotationY: false,
 		isLockRotationX: false,
@@ -148,7 +150,7 @@
 			vertexBuffer: false,
 			meshes: false
 		};
-	  window.GFX.loadModel(gl, ViewParameters.model, modelData, ViewParameters.imageUris, function() {animate(0);});
+	  window.GFX.loadModel(gl, ViewParameters, modelData, function() {animate(0);});
 
 		// ------------------------------------
 		// matrices
@@ -174,7 +176,7 @@
 
 			if (ViewParameters.model.uri !== modelData.modelURL || ViewParameters.needsReload) {
 				ViewParameters.needsReload = false;
-				window.GFX.loadModel(gl, ViewParameters.model, modelData, ViewParameters.imageUris, function() {
+				window.GFX.loadModel(gl, ViewParameters, modelData, function() {
 					console.log("Loaded: "+modelData.modelURL);
 				});
 			}

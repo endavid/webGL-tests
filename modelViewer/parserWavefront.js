@@ -16,6 +16,10 @@
       var lastGroup = -1;
       lines.forEach(function(s) {
         var m;
+        m = /mtllib\s(.*)/.exec(s);
+        if (m) {
+            model.materialFile = m[1];
+        }
         m = /v\s(.+)\s(.+)\s(.+)/.exec(s);
         if (m) {
           m.slice(1, 4).forEach(function(val){
@@ -101,6 +105,59 @@
         model.meshes.push(submesh);
       });
       return model;
+    },
+
+    parseMaterial: function(data) {
+      var lines = data.split("\n");
+      var materials = {};
+      var lastMaterial = "";
+      function getVector(match) {
+        var v = [];
+        match.slice(1, 4).forEach(function(val){
+          v.push(parseFloat(val));
+        });
+        return v;
+      }
+      lines.forEach(function(s) {
+        var m;
+        m = /newmtl\s(.*)/.exec(s);
+        if (m) {
+          lastMaterial = m[1];
+          materials[lastMaterial] = {};
+          return;
+        }
+        m = /Kd\s(.+)\s(.+)\s(.+)/.exec(s);
+        if (m) {
+          materials[lastMaterial].diffuseColor = getVector(m);
+          return;
+        }
+        m = /Ka\s(.+)\s(.+)\s(.+)/.exec(s);
+        if (m) {
+          materials[lastMaterial].ambientColor = getVector(m);
+          return;
+        }
+        m = /Ks\s(.+)\s(.+)\s(.+)/.exec(s);
+        if (m) {
+          materials[lastMaterial].specularColor = getVector(m);
+          return;
+        }
+        m = /Ns\s(.+)/.exec(s);
+        if (m) {
+          materials[lastMaterial].specularExponent = parseFloat(m[1]);
+          return;
+        }
+        m = /map_Kd\s(.*)/.exec(s);
+        if (m) {
+          materials[lastMaterial].albedoMap = m[1];
+          return;
+        }
+        m = /d\s(.+)/.exec(s);
+        if (m) {
+          materials[lastMaterial].opaqueness = parseFloat(m[1]);
+          return;
+        }
+      });
+      return materials;
     },
 
     exportObjModel: function(model, callback) {

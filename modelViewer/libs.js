@@ -85,34 +85,33 @@
 		},
 
 		// tries to get the datatype
-		loadModel: function(gl, modelFile, modelData, imageUris, callback)
+		loadModel: function(gl, params, modelData, callback)
 		{
 			var loaders = {
 				loadModelJson: function() {
-					$.getJSON(modelFile.uri, function(model) {
-						GFX.initModelFromJson(gl, modelData, imageUris, model);
+					$.getJSON(params.model.uri, function(model) {
+						GFX.initModelFromJson(gl, modelData, params.imageUris, model);
 						callback();
 					});
 				},
 				loadModelObj: function()
 				{
-					GFX.modelFileToJson(modelFile, function(model) {
-						GFX.initModelFromJson(gl, modelData, imageUris, model);
+					GFX.modelFileToJson(params, function(model) {
+						GFX.initModelFromJson(gl, modelData, params.imageUris, model);
 						callback();
 					});
 				}
 			};
-			var ext = GFX.getModelFileExtension(modelFile);
+			var ext = GFX.getModelFileExtension(params.model);
 			var fn = loaders["loadModel"+ext];
 			if(ext !== "" && typeof fn === 'function') {
 				// free previous resources
 				GFX.destroyBuffers(gl, modelData);
-				modelData.modelURL = modelFile.uri;
+				modelData.modelURL = params.model.uri;
 				fn();
 			} else {
 				window.alert("Unsupported format: "+ext);
 			}
-			modelData.modelURL = modelFile.uri;
 		},
 
 		// format:
@@ -147,22 +146,36 @@
 			});
 		},
 
-		modelFileToJson: function(modelFile, callback)
+		modelFileToJson: function(params, callback)
 		{
-			var ext = GFX.getModelFileExtension(modelFile);
+			var ext = GFX.getModelFileExtension(params.model);
 			if (ext === "Obj") {
 				$.ajax({
 					async: true,
-					url: modelFile.uri,
+					url: params.model.uri,
 					success: function(data) {
 						var model = window.WavefrontUtils.parseObjWavefront(data);
-						model.name = GFX.getFileNameWithoutExtension(modelFile.name) + ".json";
-						callback(model);
+            model.name = GFX.getFileNameWithoutExtension(params.model.name) + ".json";
+            if (model.materialFile !== undefined && params.materialUris[model.materialFile] !== undefined) {
+              $.ajax({
+      					async: true,
+      					url: params.materialUris[model.materialFile],
+      					success: function(mtldata) {
+                  model.materials = window.WavefrontUtils.parseMaterial(mtldata);
+                  console.log(model.materials);
+      						callback(model);
+      					},
+      					dataType: 'text'
+      				});
+            }
+            else {
+						  callback(model);
+            }
 					},
 					dataType: 'text'
 				});
 			} else if (ext === "Json") {
-				$.getJSON(modelFile.uri, function(model) {
+				$.getJSON(params.model.uri, function(model) {
 					callback(model);
 				});
 			}
@@ -211,16 +224,16 @@
 			return ext;
 		},
 
-		exportModel: function(modelFile, modelType) {
-			var ext = GFX.getModelFileExtension(modelFile);
-			var filename = GFX.getFileNameWithoutExtension(modelFile.name);
+		exportModel: function(params, modelType) {
+			var ext = GFX.getModelFileExtension(params.model);
+			var filename = GFX.getFileNameWithoutExtension(params.model.name);
 			var onExportSuccess = function(text) {
 				saveAs(
 					new Blob([text], {type: "text/plain;charset=" + document.characterSet}),
 					filename + modelType
 				);
 			};
-			GFX.modelFileToJson(modelFile, function(model) {
+			GFX.modelFileToJson(params, function(model) {
 				if (modelType === ".obj") {
 					window.WavefrontUtils.exportObjModel(model, onExportSuccess);
 				} else if (modelType === ".json") {
