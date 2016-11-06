@@ -148,7 +148,7 @@
 			vertexBuffer: false,
 			meshes: false
 		};
-	  window.GFX.loadModelJson(gl, ViewParameters.model, modelData, ViewParameters.imageUris, function() {animate(0);});
+	  window.GFX.loadModel(gl, ViewParameters.model, modelData, ViewParameters.imageUris, function() {animate(0);});
 
 		// ------------------------------------
 		// matrices

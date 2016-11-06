@@ -87,10 +87,28 @@
 		// tries to get the datatype
 		loadModel: function(gl, modelFile, modelData, imageUris, callback)
 		{
+			var loaders = {
+				loadModelJson: function() {
+					$.getJSON(modelFile.uri, function(model) {
+						GFX.initModelFromJson(gl, modelData, imageUris, model);
+						callback();
+					});
+				},
+				loadModelObj: function()
+				{
+					GFX.modelFileToJson(modelFile, function(model) {
+						GFX.initModelFromJson(gl, modelData, imageUris, model);
+						callback();
+					});
+				}
+			};
 			var ext = GFX.getModelFileExtension(modelFile);
-			var fn = GFX["loadModel"+ext];
+			var fn = loaders["loadModel"+ext];
 			if(ext !== "" && typeof fn === 'function') {
-				fn(gl, modelFile, modelData, imageUris, callback);
+				// free previous resources
+				GFX.destroyBuffers(gl, modelData);
+				modelData.modelURL = modelFile.uri;
+				fn();
 			} else {
 				window.alert("Unsupported format: "+ext);
 			}
@@ -126,24 +144,6 @@
 											new Uint16Array(m.indices), // 32-bit for more than 64K verts
 					gl.STATIC_DRAW);
 				modelData.meshes.push(mesh);
-			});
-		},
-
-		loadModelJson: function(gl, modelFile, modelData, imageUris, callback)
-		{
-			// free previous resources
-			GFX.destroyBuffers(gl, modelData);
-			modelData.modelURL = modelFile.uri;
-			$.getJSON(modelFile.uri, function(model) {
-				GFX.initModelFromJson(gl, modelData, imageUris, model);
-				callback();
-			});
-		},
-
-		loadModelObj: function(gl, modelFile, modelData, imageUris, callback)
-		{
-			GFX.modelFileToJson(modelFile, function(model) {
-				GFX.initModelFromJson(gl, modelData, imageUris, model);
 			});
 		},
 
