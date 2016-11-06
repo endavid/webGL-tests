@@ -21,7 +21,9 @@ void main(void) {
 	vec3 ambientColor = vec3(0.0,0.0,0.0);
 	vec4 color = vec4(albedo.rgb * incidentCos + specular + ambientColor, albedo.a);
 	gl_FragColor = color;
+	//gl_FragColor = albedo;
 	//gl_FragColor = vec4(vNormal, 1.0);
+	//gl_FragColor = vec4(vUV, 0, 1);
 	//gl_FragColor = vec4(worldPosition, 1.0);
 	//gl_FragColor = vec4(cameraPosition, 1.0);
 	//gl_FragColor = vec4(hnCos, hnCos, hnCos, 1.0);

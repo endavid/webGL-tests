@@ -92,11 +92,11 @@
         model.vertices.push(positions[3*triplet[0]]);
         model.vertices.push(positions[3*triplet[0]+1]);
         model.vertices.push(positions[3*triplet[0]+2]);
-        model.vertices.push(triplet[1]===undefined?0:normals[3*triplet[1]]);
-        model.vertices.push(triplet[1]===undefined?0:normals[3*triplet[1]+1]);
-        model.vertices.push(triplet[1]===undefined?0:normals[3*triplet[1]+2]);
-        model.vertices.push(triplet[2]===undefined?0:uvs[2*triplet[2]]);
-        model.vertices.push(triplet[2]===undefined?0:uvs[2*triplet[2]+1]);
+        model.vertices.push(triplet[2]===undefined?0:normals[3*triplet[2]]);
+        model.vertices.push(triplet[2]===undefined?0:normals[3*triplet[2]+1]);
+        model.vertices.push(triplet[2]===undefined?0:normals[3*triplet[2]+2]);
+        model.vertices.push(triplet[1]===undefined?0:uvs[2*triplet[1]]);
+        model.vertices.push(triplet[1]===undefined?0:uvs[2*triplet[1]+1]);
       });
       console.log("# shared vertices: "+countSharedVertices+"/"+positions.length);
       meshes.forEach(function(m){

@@ -137,7 +137,7 @@
 			//submeshes
 			modelData.meshes=[];
 			model.meshes.forEach(function (m){
-        var mat = m.material !== undefined ? model.materials[m.material] : {};
+        var mat = m.material !== undefined ? model.materials[m.material] || {} : {};
 				var albedoMapName = mat.albedoMap || "missing";
         // if the .dds texture is missing, try to find equivalent .png
         var albedoMapUri = imageUris[albedoMapName] || imageUris[GFX.getFileNameWithoutExtension(albedoMapName)+".png"];

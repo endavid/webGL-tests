@@ -212,11 +212,9 @@
 				// draw all submeshes
 				modelData.meshes.forEach(function (mesh) {
 					gl.activeTexture(gl.TEXTURE0);
-					if (mesh.albedoMap && mesh.albedoMap.webglTexture) {
+					var albedoMap = mesh.albedoMap || whiteTexture;
+					if (albedoMap.webglTexture) {
 						gl.bindTexture(gl.TEXTURE_2D, mesh.albedoMap.webglTexture);
-					}
-					else {
-						gl.bindTexture(gl.TEXTURE_2D, whiteTexture.webglTexture);
 					}
 					gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
 					gl.drawElements(gl.TRIANGLES, mesh.numPoints, gl.UNSIGNED_SHORT, 0);
