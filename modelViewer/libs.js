@@ -94,8 +94,7 @@
             callback();
           });
         },
-        loadModelObj: function()
-        {
+        loadModel: function() {
           GFX.modelFileToJson(params, function(model) {
             GFX.initModelFromJson(gl, modelData, params.imageUris, model);
             callback();
@@ -103,7 +102,7 @@
         }
       };
       var ext = GFX.getModelFileExtension(params.model);
-      var fn = loaders["loadModel"+ext];
+      var fn = loaders["loadModel" + (ext === "Json" ? ext : "")];
       if(ext !== "" && typeof fn === 'function') {
         // free previous resources
         GFX.destroyBuffers(gl, modelData);
@@ -178,6 +177,17 @@
             else {
               callback(model);
             }
+          },
+          dataType: 'text'
+        });
+      } else if (ext === "Dae") {
+        $.ajax({
+          async: true,
+          url: params.model.uri,
+          success: function(data) {
+            var model = window.ColladaUtils.parseCollada(data);
+            model.name = GFX.getFileNameWithoutExtension(params.model.name) + ".json";
+            callback(model);
           },
           dataType: 'text'
         });

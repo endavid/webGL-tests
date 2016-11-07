@@ -120,7 +120,7 @@
           .attr('id', id)
           .attr('type', 'file')
           // .obj, .json doesn't work in Safari...
-          //.attr('accept', '.obj,.json,.mtl,image/*')
+          //.attr('accept', '.obj,.json,.dae,.mtl,image/*')
           .attr('multiple', '')
           .change(updateFunction)
         )
@@ -169,7 +169,7 @@
       var models = [];
       for (var i = 0 ; i < values.length; i++) {
         var ext = window.GFX.getFileExtension(values[i].name);
-        if (ext === "Json" || ext === "Obj") {
+        if (ext === "Json" || ext === "Obj" || ext === "Dae") {
           models.push(values[i]);
         } else if (ext === "Mtl") {
           window.ViewParameters.materialUris[values[i].name] = values[i].uri;
