@@ -30,7 +30,7 @@
   }
 
   var ColladaUtils = {
-    parseCollada: function(xmlText) {
+    parseCollada: function(xmlText, defaultMaterial) {
       // https://github.com/abdmob/x2js
       var x2js = new X2JS();
       var json = x2js.xml_str2json(xmlText);
@@ -43,7 +43,13 @@
         vertices: [],
         meshes: []
       };
+      if (defaultMaterial) {
+        model.materials[defaultMaterial] = {
+          albedoMap: defaultMaterial
+        };
+      }
       var src = json.COLLADA.library_geometries.geometry.mesh.source;
+      var isZUp = (json.COLLADA.asset.up_axis === "Z_UP");
       src.forEach(function (e) {
         if (e._id.indexOf("positions") >= 0) {
           positions = floatStringToArray(e.float_array.__text);
@@ -60,14 +66,27 @@
       var vcount = intStringToArray(polylist.vcount);
       var polygons = toVectorArray(intStringToArray(polylist.p), numInputs);
       var submesh = { indices: [] };
+      if (defaultMaterial) {
+        submesh.material = defaultMaterial;
+      }
       for (var i = 0; i < polygons.length; i++) {
         var p = polygons[i];
         model.vertices.push(positions[3*p[0]]);
-        model.vertices.push(positions[3*p[0]+1]);
-        model.vertices.push(positions[3*p[0]+2]);
+        if (isZUp) {
+          model.vertices.push(positions[3*p[0]+2]);
+          model.vertices.push(-positions[3*p[0]+1]);
+        } else {
+          model.vertices.push(positions[3*p[0]+1]);
+          model.vertices.push(positions[3*p[0]+2]);
+        }
         model.vertices.push(p[1]===undefined?0:normals[3*p[1]]);
-        model.vertices.push(p[1]===undefined?0:normals[3*p[1]+1]);
-        model.vertices.push(p[1]===undefined?0:normals[3*p[1]+2]);
+        if (isZUp) {
+          model.vertices.push(p[1]===undefined?0:normals[3*p[1]+2]);
+          model.vertices.push(p[1]===undefined?0:-normals[3*p[1]+1]);
+        } else {
+          model.vertices.push(p[1]===undefined?0:normals[3*p[1]+1]);
+          model.vertices.push(p[1]===undefined?0:normals[3*p[1]+2]);
+        }
         model.vertices.push(p[2]===undefined?0:uvs[2*p[2]]);
         model.vertices.push(p[2]===undefined?0:uvs[2*p[2]+1]);
       }
@@ -94,7 +113,6 @@
       Object.keys(ngons).forEach(function(n) {
         console.log(n+"-gons not supported. Only triangles and quads");
       });
-      console.log(json);
       return model;
     }
   };

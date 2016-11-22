@@ -185,8 +185,9 @@
           async: true,
           url: params.model.uri,
           success: function(data) {
-            var model = window.ColladaUtils.parseCollada(data);
-            model.name = GFX.getFileNameWithoutExtension(params.model.name) + ".json";
+            var filename = GFX.getFileNameWithoutExtension(params.model.name);
+            var model = window.ColladaUtils.parseCollada(data, filename + ".png");
+            model.name = filename + ".json";
             callback(model);
           },
           dataType: 'text'
