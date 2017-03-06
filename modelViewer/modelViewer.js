@@ -44,26 +44,28 @@
   Resources.prototype.initShaders = function()
   {
     var gl = this.gl;
-    this.shaderLit = window.GFX.useShader(gl, "shaders/geometry.vs", "shaders/lighting.fs");
-
-    // vertex attributes
-    this.attribs = {
-      uv:       gl.getAttribLocation(this.shaderLit, "uv"),
-      position: gl.getAttribLocation(this.shaderLit, "position"),
-      normal:   gl.getAttribLocation(this.shaderLit, "normal")
-    };
-    // uniforms
-    this.uniforms = {
-      matrixP: gl.getUniformLocation(this.shaderLit, "Pmatrix"),
-      matrixV: gl.getUniformLocation(this.shaderLit, "Vmatrix"),
-      matrixM: gl.getUniformLocation(this.shaderLit, "Mmatrix"),
-      lightDirection: gl.getUniformLocation(this.shaderLit, "lightDirection"),
-      sampler: gl.getUniformLocation(this.shaderLit, "sampler")
-    };
-    var attribKeys = Object.keys(this.attribs);
-    for (var i = 0; i < attribKeys.length; i++ ) {
-      gl.enableVertexAttribArray(this.attribs[attribKeys[i]]);
-    }
+    var self = this;
+    this.shaderLit = window.GFX.useShader(gl, "shaders/geometry.vs", "shaders/lighting.fs", function(shaderProgram) {
+      self.shaderLit = shaderProgram;
+      // vertex attributes
+      self.attribs = {
+        uv:       gl.getAttribLocation(self.shaderLit, "uv"),
+        position: gl.getAttribLocation(self.shaderLit, "position"),
+        normal:   gl.getAttribLocation(self.shaderLit, "normal")
+      };
+      // uniforms
+      self.uniforms = {
+        matrixP: gl.getUniformLocation(self.shaderLit, "Pmatrix"),
+        matrixV: gl.getUniformLocation(self.shaderLit, "Vmatrix"),
+        matrixM: gl.getUniformLocation(self.shaderLit, "Mmatrix"),
+        lightDirection: gl.getUniformLocation(self.shaderLit, "lightDirection"),
+        sampler: gl.getUniformLocation(self.shaderLit, "sampler")
+      };
+      var attribKeys = Object.keys(self.attribs);
+      for (var i = 0; i < attribKeys.length; i++ ) {
+        gl.enableVertexAttribArray(self.attribs[attribKeys[i]]);
+      }
+    });
   };
 
   Resources.prototype.setDefaultTextureParameters = function()
@@ -197,7 +199,7 @@
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-      if (modelData.vertexBuffer) {
+      if (modelData.vertexBuffer && res.shaderLit) {
         gl.useProgram(res.shaderLit);
         gl.uniform1i(res.uniforms.sampler, 0);
         gl.uniformMatrix4fv(res.uniforms.matrixP, false, projectionMatrix);

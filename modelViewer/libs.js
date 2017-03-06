@@ -13,36 +13,45 @@
     SHADER_TYPE_FRAGMENT: "x-shader/x-fragment",
     SHADER_TYPE_VERTEX: "x-shader/x-vertex",
 
-    /// Eg. var shaderProgram = GFX.useShader(gl, "shaders/main.vs", "shaders/main.fs");
-    useShader: function(gl, vsPath, fsPath)
+    /// Eg. GFX.useShader(gl, "shaders/main.vs", "shaders/main.fs", function(shaderProgram) {});
+    useShader: function(gl, vsPath, fsPath, callback)
     {
-      GFX.loadShader(vsPath, GFX.SHADER_TYPE_VERTEX);
-      GFX.loadShader(fsPath, GFX.SHADER_TYPE_FRAGMENT);
-      var vertexShader = GFX.getShader(gl, vsPath);
-      var fragmentShader = GFX.getShader(gl, fsPath);
-      var prog = gl.createProgram();
-      gl.attachShader(prog, vertexShader);
-      gl.attachShader(prog, fragmentShader);
-      gl.linkProgram(prog);
-      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-        alert("Could not initialise shaders: "+vsPath+", "+fsPath);
-      }
-      return prog;
+      GFX.loadShader(vsPath, GFX.SHADER_TYPE_VERTEX, function(vd) {
+        if (vd) {
+          GFX.loadShader(fsPath, GFX.SHADER_TYPE_FRAGMENT, function (fd) {
+            if (fd) {
+              var vertexShader = GFX.getShader(gl, vsPath);
+              var fragmentShader = GFX.getShader(gl, fsPath);
+              var prog = gl.createProgram();
+              gl.attachShader(prog, vertexShader);
+              gl.attachShader(prog, fragmentShader);
+              gl.linkProgram(prog);
+              if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+                console.error("Could not initialise shaders: "+vsPath+", "+fsPath);
+              }
+              callback(prog);
+            }
+          });
+        }
+      });
     },
 
-    loadShader: function(file, type)
+    loadShader: function(file, type, callback)
     {
-      var cacheLine, shader;
       $.ajax({
-        async: false, // wait...
+        async: true,
         url: file,
         success: function(data) {
-          cacheLine = {script: data, type: type};
+          // store in cache
+          GFX.shaderCache[file] = {script: data, type: type};
+          callback(data);
+        },
+        error: function(e) {
+          console.log("loadShader: " + e);
+          callback();
         },
         dataType: 'text'
       });
-      // store in cache
-      GFX.shaderCache[file] = cacheLine;
     },
 
     getShader: function(gl, id)
