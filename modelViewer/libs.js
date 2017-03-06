@@ -382,6 +382,13 @@
       m[12]=0; m[13]=0; m[14]=0; m[15]=1;
     },
 
+    setScale4: function(m, scale) {
+      MATH.setI4(m);
+      m[0]=scale;
+      m[5]=scale;
+      m[10]=scale;
+    },
+
     rotateX: function(m, angle) {
       var c=Math.cos(angle);
       var s=Math.sin(angle);

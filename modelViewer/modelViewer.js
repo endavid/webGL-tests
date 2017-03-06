@@ -20,6 +20,7 @@
     isLockRotationX: false,
     modelRotationTheta: 0,
     modelRotationPhi: 0,
+    modelScale: 1,
     cameraDistance: -6,
     cameraHeight: -0.7,
     lightDirection: [0.21, 0.072, 0.71],
@@ -189,7 +190,7 @@
         dY*=amortization;
         updateViewRotation(dX, dY);
       }
-      window.MATH.setI4(modelMatrix);
+      window.MATH.setScale4(modelMatrix, ViewParameters.modelScale);
       window.MATH.rotateY(modelMatrix, ViewParameters.modelRotationTheta);
       window.MATH.rotateX(modelMatrix, ViewParameters.modelRotationPhi);
       window.MATH.setI4(viewMatrix);

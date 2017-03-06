@@ -211,6 +211,9 @@
         window.ViewParameters.isZAxisUp = value;
         window.ViewParameters.needsReload = true;
       }),
+      createSlider("modelScaleExp10", 0, -3, 3, 0.2, function(value) {
+        window.ViewParameters.modelScale = Math.pow(10, parseFloat(value));
+      }),
       createSlider("modelRotationTheta",
         window.ViewParameters.modelRotationTheta, 0, 2 * Math.PI, 0.01, function(value) {
           window.ViewParameters.modelRotationTheta = parseFloat(value);
