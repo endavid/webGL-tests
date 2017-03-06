@@ -10,6 +10,7 @@
    */
   var GFX = {
     shaderCache: {},
+    textureCache: {},
     SHADER_TYPE_FRAGMENT: "x-shader/x-fragment",
     SHADER_TYPE_VERTEX: "x-shader/x-vertex",
 
@@ -80,9 +81,8 @@
     {
       if (modelData.meshes) {
         modelData.meshes.forEach(function (m) {
-          if (m.albedoMap && m.albedoMap.webglTexture) {
-            gl.deleteTexture(m.albedoMap.webglTexture);
-          }
+          // remove img reference
+          m.albedoMap = null;
           gl.deleteBuffer(m.indexBuffer);
         });
         modelData.meshes = false;
@@ -91,6 +91,15 @@
         gl.deleteBuffer(modelData.vertexBuffer);
         modelData.vertexBuffer = false;
       }
+      // empty texture cache
+      Object.keys(GFX.textureCache).forEach(function (url) {
+        var img = GFX.textureCache[url];
+        if (img.webglTexture) {
+          gl.deleteTexture(img.webglTexture);
+        }
+        GFX.textureCache[url] = null;
+      });
+      GFX.textureCache = {};
     },
 
     // tries to get the datatype
@@ -208,9 +217,12 @@
       }
     },
 
-    loadTexture: function(gl, image_URL) {
+    loadTexture: function(gl, url) {
+      if (GFX.textureCache[url]) {
+        return GFX.textureCache[url];
+      }
       var image=new Image();
-      image.src=image_URL;
+      image.src=url;
       image.webglTexture=false;
       image.onload=function(e)
       {
@@ -224,6 +236,7 @@
         gl.bindTexture(gl.TEXTURE_2D, null);
         image.webglTexture=texture;
       };
+      GFX.textureCache[url] = image;
       return image;
     },
 
