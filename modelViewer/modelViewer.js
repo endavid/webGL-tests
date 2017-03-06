@@ -144,7 +144,7 @@
     // Resources
     // ------------------------------------
     var res = new Resources(gl, canvas.width, canvas.height);
-    var whiteTexture = window.GFX.loadTexture(gl, ViewParameters.imageUris.white);
+    var whiteTexture = window.GFX.loadTexture(gl, ViewParameters.imageUris.white, true /* keep in textureCache forever */);
     // ------------------------------------
     // model data
     // ------------------------------------
@@ -199,7 +199,7 @@
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-      if (modelData.vertexBuffer && res.shaderLit) {
+      if (modelData.vertexBuffer && res.shaderLit && whiteTexture.webglTexture) {
         gl.useProgram(res.shaderLit);
         gl.uniform1i(res.uniforms.sampler, 0);
         gl.uniformMatrix4fv(res.uniforms.matrixP, false, projectionMatrix);
@@ -215,8 +215,11 @@
         modelData.meshes.forEach(function (mesh) {
           gl.activeTexture(gl.TEXTURE0);
           var albedoMap = mesh.albedoMap || whiteTexture;
-          if (albedoMap.webglTexture) {
-            gl.bindTexture(gl.TEXTURE_2D, mesh.albedoMap.webglTexture);
+          var glTexture = albedoMap.webglTexture || whiteTexture.webglTexture;
+          if (glTexture) {
+            gl.bindTexture(gl.TEXTURE_2D, glTexture);
+          } else {
+            console.error("Not even the white texture is ready!");
           }
           gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
           gl.drawElements(gl.TRIANGLES, mesh.numPoints, gl.UNSIGNED_SHORT, 0);

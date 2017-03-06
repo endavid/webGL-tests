@@ -92,14 +92,21 @@
         modelData.vertexBuffer = false;
       }
       // empty texture cache
+      var toKeep = [];
       Object.keys(GFX.textureCache).forEach(function (url) {
         var img = GFX.textureCache[url];
-        if (img.webglTexture) {
-          gl.deleteTexture(img.webglTexture);
+        if (img.keepInCache) {
+          toKeep.push(url);
+        } else {
+          if (img.webglTexture) {
+            gl.deleteTexture(img.webglTexture);
+          }
+          GFX.textureCache[url] = null;
         }
-        GFX.textureCache[url] = null;
       });
-      GFX.textureCache = {};
+      var newCache = {};
+      toKeep.forEach(function (url) { newCache[url] = GFX.textureCache[url]; });
+      GFX.textureCache = newCache;
     },
 
     // tries to get the datatype
@@ -217,13 +224,14 @@
       }
     },
 
-    loadTexture: function(gl, url) {
+    loadTexture: function(gl, url, keepInCache) {
       if (GFX.textureCache[url]) {
         return GFX.textureCache[url];
       }
       var image=new Image();
       image.src=url;
       image.webglTexture=false;
+      image.keepInCache = keepInCache;
       image.onload=function(e)
       {
         var texture=gl.createTexture();
