@@ -115,12 +115,18 @@
       var loaders = {
         loadModelJson: function() {
           $.getJSON(params.model.uri, function(model) {
+            if (params.isZAxisUp) {
+              GFX.flipAxisZ(model);
+            }
             GFX.initModelFromJson(gl, modelData, params.imageUris, model);
             callback();
           });
         },
         loadModel: function() {
           GFX.modelFileToJson(params, function(model) {
+            if (params.isZAxisUp) {
+              GFX.flipAxisZ(model);
+            }
             GFX.initModelFromJson(gl, modelData, params.imageUris, model);
             callback();
           });
@@ -135,6 +141,21 @@
         fn();
       } else {
         window.alert("Unsupported format: "+ext);
+      }
+    },
+
+    flipAxisZ: function(model) {
+      var n = model.vertices.length;
+      var coordsPerVertex = 8; // position (3), normal (3), uv (2)
+      for (var i = 0; i < n; i+=coordsPerVertex) {
+        var positionY = model.vertices[i+1];
+        var positionZ = model.vertices[i+2];
+        var normalY = model.vertices[i+4];
+        var normalZ = model.vertices[i+5];
+        model.vertices[i+1] = positionZ;
+        model.vertices[i+2] = -positionY;
+        model.vertices[i+4] = normalZ;
+        model.vertices[i+5] = -normalY;
       }
     },
 
