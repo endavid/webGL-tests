@@ -11,10 +11,10 @@ void main(void) {
 	vec3 viewDirection = normalize(cameraPosition - worldPosition);
 	vec3 halfVector = normalize(viewDirection + lightDirection);
 	float hnCos = clamp(dot(vNormal, halfVector), 0.0, 1.0);
-	float specPower = 2.0;
+	float specPower = 10.0;
 	float brdf = 0.125 * (specPower + 8.0) * pow(hnCos, specPower);
-	vec3 fresnelColor = 0.5 * vec3(1.0,1.0,1.0);
-	float fresnelPower = 4.0;
+	vec3 fresnelColor = 0.3 * (1.0 - albedo.rgb);
+	float fresnelPower = 2.0;
 	vec3 fresnel = fresnelColor * pow(1.0 - hnCos, fresnelPower);
 	vec3 specularColor = vec3(0.6, 0.6, 0.6);
 	vec3 specular = brdf * specularColor * incidentCos + fresnel;
