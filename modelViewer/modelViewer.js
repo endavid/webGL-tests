@@ -78,10 +78,34 @@
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T,     gl.CLAMP_TO_EDGE);
   };
 
+  // https://webglfundamentals.org/webgl/lessons/webgl-text-canvas2d.html
+  function drawLabel(ctx, pixelX, pixelY, label) {
+    // save all the canvas settings
+    ctx.save();
+    // translate the canvas origin so 0, 0 is at
+    // the top front right corner of our F
+    ctx.translate(pixelX, pixelY);
+    // draw an arrow
+    ctx.beginPath();
+    ctx.moveTo(10, 5);
+    ctx.lineTo(0, 0);
+    ctx.lineTo(5, 10);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(15, 15);
+    ctx.stroke();
+    // draw the text.
+    ctx.fillText(label, 20, 20);
+    // restore the canvas to its old settings.
+    ctx.restore();
+  }
+
   // ============================================
   var main = function()
   {
-    var canvas = document.getElementById("demo_canvas");
+    var canvas = document.getElementById("glCanvas");
+    var textCanvas = document.getElementById("text");
+    var ctx = textCanvas.getContext("2d");
+
     // -------------------------------------------------
     // capture mouse events
     // -------------------------------------------------
@@ -167,6 +191,8 @@
     // Drawing
     // --------------------------------------------
 
+    ctx.fillStyle = "#ffffff";
+    ctx.strokeStyle = "#ffffff";
     gl.clearColor(0.1,0.3,0,1);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
@@ -199,6 +225,7 @@
 
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
       if (modelData.vertexBuffer && res.shaderLit && whiteTexture.webglTexture) {
         gl.useProgram(res.shaderLit);
@@ -226,7 +253,13 @@
           gl.drawElements(gl.TRIANGLES, mesh.numPoints, gl.UNSIGNED_SHORT, 0);
         });
       }
-
+      var origin = window.MATH.mulVector(viewMatrix, [0,0,0,1]);
+      var clip = window.MATH.mulVector(projectionMatrix, origin);
+      clip[0] /= clip[3]; clip[1] /= clip[3];
+      // convert from clipspace to pixels
+      var pixelX = (clip[0] *  0.5 + 0.5) * gl.canvas.width;
+      var pixelY = (clip[1] * -0.5 + 0.5) * gl.canvas.height;
+      drawLabel(ctx, pixelX, pixelY, "origin");
       gl.flush();
       window.requestAnimationFrame(animate); // redraw the scene
     };

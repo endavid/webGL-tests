@@ -192,3 +192,15 @@ table {
 input[type="number"] {
    width:50px;
 }
+
+.container {
+	position: relative;
+}
+#text {
+	background-color: transparent;
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	z-index: 10;
+	pointer-events: none;
+}
