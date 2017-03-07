@@ -3,8 +3,14 @@
 
   var ViewParameters = {
     model: {
-        name: "pear.json",
-        uri: "resources/pear.json",
+      name: "pear.json",
+      uri: "resources/pear.json",
+    },
+    labels: {
+      world: {
+        origin: [0, 0, 0]
+      },
+      model: {}
     },
     imageUris: {
       "banana.png": "resources/banana.png",
@@ -97,6 +103,30 @@
     ctx.fillText(label, 20, 20);
     // restore the canvas to its old settings.
     ctx.restore();
+  }
+
+  function drawAllLabels(ctx, projectionMatrix, viewMatrix, modelMatrix, canvasWidth, canvasHeight) {
+    var labels = ViewParameters.labels;
+    function worldToPixels(world) {
+      var view = window.MATH.mulVector(viewMatrix, world);
+      var clip = window.MATH.mulVector(projectionMatrix, view);
+      clip[0] /= clip[3]; clip[1] /= clip[3];
+      // convert from clipspace to pixels
+      return [(clip[0] *  0.5 + 0.5) * canvasWidth, (clip[1] * -0.5 + 0.5) * canvasHeight];
+    }
+    Object.keys(labels.world).forEach(function (k) {
+      var pos = labels.world[k];
+      pos[3] = 1;
+      var pix = worldToPixels(pos);
+      drawLabel(ctx, pix[0], pix[1], k);
+    });
+    Object.keys(labels.model).forEach(function (k) {
+      var pos = labels.model[k];
+      pos[3] = 1;
+      var world = window.MATH.mulVector(modelMatrix, pos);
+      var pix = worldToPixels(world);
+      drawLabel(ctx, pix[0], pix[1], k);
+    });
   }
 
   // ============================================
@@ -253,13 +283,7 @@
           gl.drawElements(gl.TRIANGLES, mesh.numPoints, gl.UNSIGNED_SHORT, 0);
         });
       }
-      var origin = window.MATH.mulVector(viewMatrix, [0,0,0,1]);
-      var clip = window.MATH.mulVector(projectionMatrix, origin);
-      clip[0] /= clip[3]; clip[1] /= clip[3];
-      // convert from clipspace to pixels
-      var pixelX = (clip[0] *  0.5 + 0.5) * gl.canvas.width;
-      var pixelY = (clip[1] * -0.5 + 0.5) * gl.canvas.height;
-      drawLabel(ctx, pixelX, pixelY, "origin");
+      drawAllLabels(ctx, projectionMatrix, viewMatrix, modelMatrix, gl.canvas.width, gl.canvas.height);
       gl.flush();
       window.requestAnimationFrame(animate); // redraw the scene
     };
