@@ -154,8 +154,9 @@
         var normalZ = model.vertices[i+5];
         model.vertices[i+1] = positionZ;
         model.vertices[i+2] = -positionY;
-        model.vertices[i+4] = normalZ;
-        model.vertices[i+5] = -normalY;
+        // it seems that the normals of the models I have don't need flipping...
+        //model.vertices[i+4] = normalZ;
+        //model.vertices[i+5] = -normalY;
       }
     },
 

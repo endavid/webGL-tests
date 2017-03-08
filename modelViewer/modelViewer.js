@@ -29,7 +29,7 @@
     modelScale: 1,
     cameraDistance: -6,
     cameraHeight: -0.7,
-    lightDirection: [0.21, 0.71, 0.072],
+    lightDirection: [0.072, 0.71, 0.21],
     needsReload: false,
     onRotation: function() {},
   };
