@@ -38,14 +38,14 @@ Resources.prototype.initExtensions = function()
 		alert("Missing OES_texture_float extension!");
 		return false;
 	}
-}
+};
 
 Resources.prototype.initShaders = function()
 {
 	var gl = this.gl;
 	this.shaderOIT = GFX.useShader(gl, "shaders/geometry.vs", "shaders/oit.fs");
 	this.shaderOITResolve = GFX.useShader(gl, "shaders/fullscreen.vs", "shaders/oit_resolve.fs");
-	
+
 	// vertex attributes
 	this.attribUv = gl.getAttribLocation(this.shaderOIT, "uv");
 	this.attribPosition = gl.getAttribLocation(this.shaderOIT, "position");
@@ -60,7 +60,7 @@ Resources.prototype.initShaders = function()
 	gl.enableVertexAttribArray(this.attribUv);
 	gl.enableVertexAttribArray(this.attribPosition);
 	gl.enableVertexAttribArray(this.attribNormal);
-}
+};
 
 Resources.prototype.initBuffers = function()
 {
@@ -69,7 +69,7 @@ Resources.prototype.initBuffers = function()
 	this.pushRenderbuffer();
 	this.pushFramebuffer();
 	this.pushViewport();
-	
+
 	this.rb = gl.createRenderbuffer();
 	this.fb = gl.createFramebuffer();
 	this.txOITAccumulation = gl.createTexture();
@@ -95,7 +95,7 @@ Resources.prototype.initBuffers = function()
   	this.popViewport();
   	this.popFramebuffer();
   	this.popRenderbuffer();
-}
+};
 
 Resources.prototype.setOITBuffer = function()
 {
@@ -103,7 +103,7 @@ Resources.prototype.setOITBuffer = function()
 	gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb);
 	gl.bindRenderbuffer(gl.RENDERBUFFER, this.rb);
 	gl.viewport(0, 0, this.width, this.height);
-}
+};
 
 Resources.prototype.setDefaultTextureParameters = function()
 {
@@ -112,7 +112,7 @@ Resources.prototype.setDefaultTextureParameters = function()
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S,     gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T,     gl.CLAMP_TO_EDGE);
-}
+};
 
 Resources.prototype.initGeometry = function()
 {
@@ -131,7 +131,7 @@ Resources.prototype.initGeometry = function()
 	this.quadIB = gl.createBuffer();
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.quadIB);
 	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.quadFaces), gl.STATIC_DRAW);
-}
+};
 
 // ----------------------------------------------
 // State
@@ -139,28 +139,28 @@ Resources.prototype.initGeometry = function()
 Resources.prototype.pushFramebuffer = function()
 {
 	this.oldFBO = this.gl.getParameter(this.gl.FRAMEBUFFER_BINDING);
-}
+};
 Resources.prototype.pushRenderbuffer = function()
 {
 	this.oldRBO = this.gl.getParameter(this.gl.RENDERBUFFER_BINDING);
-}
+};
 Resources.prototype.pushViewport = function()
 {
 	this.oldViewport = this.gl.getParameter(this.gl.VIEWPORT);
-}
+};
 Resources.prototype.popFramebuffer = function()
 {
 	this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.oldFBO);
-}
+};
 Resources.prototype.popRenderbuffer = function()
 {
 	this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.oldRBO);
-}
+};
 Resources.prototype.popViewport = function()
 {
 	var v = this.oldViewport;
 	this.gl.viewport(v[0], v[1], v[2], v[3]);
-}
+};
 // ----------------------------------------------
 // Drawing ops
 // ----------------------------------------------
@@ -172,7 +172,7 @@ Resources.prototype.drawFullScreenQuad = function()
 	gl.vertexAttribPointer(this.attribUv, 2, gl.FLOAT, false, 4*(3+2), 4*3);
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.quadIB);
 	gl.drawElements(gl.TRIANGLE_STRIP, this.quadFaces.length, gl.UNSIGNED_SHORT, 0);
-}
+};
 
 // ============================================
 var main = function()
@@ -187,33 +187,33 @@ var main = function()
 	var drag=false;
 	var old_x, old_y;
 	var dX=0, dY=0;
-	
+
 	var mouseDown=function(e) {
 	  drag=true;
-	  old_x=e.pageX, old_y=e.pageY;
+	  old_x=e.pageX; old_y=e.pageY;
 	  e.preventDefault();
 	  return false;
 	};
-	
+
 	var mouseUp=function(e){
 	  drag=false;
 	};
-	
+
 	var mouseMove=function(e) {
 	  if (!drag) return false;
-	  dX=(e.pageX-old_x)*Math.PI/canvas.width,
-	    dY=(e.pageY-old_y)*Math.PI/canvas.height;
+	  dX=(e.pageX-old_x)*Math.PI/canvas.width;
+	  dY=(e.pageY-old_y)*Math.PI/canvas.height;
 	  THETA+=dX;
 	  PHI+=dY;
-	  old_x=e.pageX, old_y=e.pageY;
+	  old_x=e.pageX; old_y=e.pageY;
 	  e.preventDefault();
 	};
-	
+
 	canvas.addEventListener("mousedown", mouseDown, false);
 	canvas.addEventListener("mouseup", mouseUp, false);
 	canvas.addEventListener("mouseout", mouseUp, false);
 	canvas.addEventListener("mousemove", mouseMove, false);
-  
+
 	// -------------------------------------------------
 	// Get WebGL context
 	// -------------------------------------------------
@@ -242,20 +242,20 @@ var main = function()
 	  gl.bufferData(gl.ARRAY_BUFFER,
 	                new Float32Array(model.vertices),
 	    gl.STATIC_DRAW);
-	
+
 	  //faces
 	  indexBuffer=gl.createBuffer();
 	  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 	  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
 	                new Uint16Array(model.indices), // 32-bit for more than 64K verts
 	    gl.STATIC_DRAW);
-	
+
 	  numPoints=model.indices.length;
-	
+
 	  animate(0);
 	});
 
-	
+
 	// ------------------------------------
 	// matrices
 	// ------------------------------------
@@ -266,7 +266,7 @@ var main = function()
 	MATH.translateY(viewMatrix, -0.7);
 	var THETA=0,
       	PHI=0;
-	
+
 	// ------------------------------------
     // Textures
 	// ------------------------------------
@@ -274,7 +274,7 @@ var main = function()
 	  var image=new Image();
 	  image.src=image_URL;
 	  image.webglTexture=false;
-	  image.onload=function(e) 
+	  image.onload=function(e)
 	  {
 	    var texture=gl.createTexture();
 	    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -287,14 +287,14 @@ var main = function()
 	    image.webglTexture=texture;
 	  };
 	  return image;
-	};   
+	};
 
-	var myTexture = getTexture("resources/pear.png");   
-  	
+	var myTexture = getTexture("resources/pear.png");
+
 	// --------------------------------------------
 	// Buffers
 	// --------------------------------------------
-	
+
 	// Drawing
 	gl.clearColor(0,0,0,1);
 	gl.disable(gl.DEPTH_TEST);
@@ -306,18 +306,18 @@ var main = function()
 	{
 		var dt=time-time_old;
 		if (!drag) {
-		  dX*=amortization, dY*=amortization;
-		  THETA+=dX, PHI+=dY;
+		  dX*=amortization; dY*=amortization;
+		  THETA+=dX; PHI+=dY;
 		}
 		MATH.setI4(modelMatrix);
 		MATH.rotateY(modelMatrix, THETA);
 		MATH.rotateX(modelMatrix, PHI);
 		time_old=time;
-    
+
 		gl.viewport(0, 0, canvas.width, canvas.height);
 		gl.clearColor(0.1,0.3,0,1);
 		gl.clear(gl.COLOR_BUFFER_BIT);
-		
+
 		res.pushRenderbuffer();
 		res.pushFramebuffer();
 		res.pushViewport();
@@ -355,7 +355,7 @@ var main = function()
 		res.popViewport();
 		res.popFramebuffer();
 		res.popRenderbuffer();
-		
+
 		gl.useProgram(res.shaderOITResolve);
 		gl.blendFunc(gl.ONE_MINUS_SRC_ALPHA, gl.SRC_ALPHA);
 		gl.uniform1i(res.uniSamplerAccum, 0);
@@ -367,8 +367,8 @@ var main = function()
 		gl.bindTexture(gl.TEXTURE_2D, res.txOITReveal);
 		res.drawFullScreenQuad();
 		gl.enableVertexAttribArray(res.attribNormal);
-  	
-		gl.flush(); 
+
+		gl.flush();
 		window.requestAnimationFrame(animate); // redraw the scene
-	}	
-}
+	};
+};

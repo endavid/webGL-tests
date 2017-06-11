@@ -52,7 +52,7 @@
   {
     var gl = this.gl;
     var self = this;
-    this.shaderLit = window.GFX.useShader(gl, "shaders/geometry.vs", "shaders/lighting.fs", function(shaderProgram) {
+    window.GFX.useShader(gl, "shaders/geometry.vs", "shaders/lighting.fs", function(shaderProgram) {
       self.shaderLit = shaderProgram;
       // vertex attributes
       self.attribs = {

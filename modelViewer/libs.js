@@ -246,8 +246,11 @@
       }
     },
 
-    loadTexture: function(gl, url, keepInCache) {
+    loadTexture: function(gl, url, keepInCache, callback) {
       if (GFX.textureCache[url]) {
+        if (callback) {
+          callback(GFX.textureCache[url]);
+        }
         return GFX.textureCache[url];
       }
       var image=new Image();
@@ -260,11 +263,25 @@
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
-        gl.generateMipmap(gl.TEXTURE_2D);
+        if (MATH.isPowerOf2(image.width) && MATH.isPowerOf2(image.height)) {
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
+          gl.generateMipmap(gl.TEXTURE_2D);
+
+        } else {
+          console.warn("NPOT texture: " + image.width + "x" + image.height);
+          // gl.NEAREST is also allowed, instead of gl.LINEAR, as neither mipmap.
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+          // Prevents s-coordinate wrapping (repeating).
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+          // Prevents t-coordinate wrapping (repeating).
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        }
         gl.bindTexture(gl.TEXTURE_2D, null);
         image.webglTexture=texture;
+        if (callback) {
+          callback(image);
+        }
       };
       GFX.textureCache[url] = image;
       return image;
@@ -469,6 +486,13 @@
       out[2] = m[2] * v[0] + m[6] * v[1] + m[10] * v[2] + m[14] * v[3];
       out[3] = m[3] * v[0] + m[7] * v[1] + m[11] * v[2] + m[15] * v[3];
       return out;
+    },
+
+    isPowerOf2: function(n) {
+      if (typeof n !== 'number') {
+        return null;
+      }
+      return n && (n & (n - 1)) === 0;
     }
   };
 
